@@ -1,14 +1,31 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>영어 문장 학습기</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+  <div class="container">
+    <div class="mode-toggle">
+      <button id="toggleMode" class="btn-secondary">학습 모드 전환</button>
+    </div>
+    
+    <h1>English Vocab</h1>
+    
+    <div id="vocabCard" class="card">
+      <div id="wordDisplay" class="word">Loading...</div>
+      <div id="meaningDisplay" class="meaning">뜻</div>
+      <div id="sentenceDisplay" class="sentence">문장</div>
+    </div>
+
+    <div class="controls">
+      <button id="showAnswer" class="btn-secondary">정답 보기</button>
+      <button id="nextWord" class="btn-primary">다음 단어</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
