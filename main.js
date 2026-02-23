@@ -22,14 +22,34 @@ const courses = {
     ]
   },
   advanced: {
-    title: "Advanced Course",
-    desc: "Master sophisticated and complex expressions.",
+    title: "Advanced: Dating & Real Talk",
+    desc: "Master trending expressions like Ghosting and Red Flags.",
     vocab: [
-      { word: "situationship", meaning: "애매한 관계 (썸과 연애 사이)", sentence: "We're not dating, it's just a situationship." },
-      { word: "hard launch", meaning: "연애 공식 선포 (얼굴 공개)", sentence: "She finally hard-launched her boyfriend on Instagram." },
-      { word: "serendipity", meaning: "뜻밖의 행운", sentence: "Finding that old photo was a moment of serendipity." },
-      { word: "quintessential", meaning: "전형적인, 본질적인", sentence: "It was the quintessential small-town American experience." },
-      { word: "ephemeral", meaning: "수명이 짧은, 덧없는", sentence: "The beauty of cherry blossoms is ephemeral." }
+      { 
+        word: "Ghost", 
+        meaning: "잠수 타다, 읽씹 후 사라지다", 
+        sentence: "I thought we had a great date, but then he ghosted me." 
+      },
+      { 
+        word: "Red Flag", 
+        meaning: "위험 신호, 거를 타선", 
+        sentence: "If he's mean to waiters, that's a huge red flag." 
+      },
+      { 
+        word: "Vibe", 
+        meaning: "분위기, 느낌, 기운", 
+        sentence: "The vibe was off during the dinner, so I left early." 
+      },
+      { 
+        word: "situationship", 
+        meaning: "애매한 관계 (썸과 연애 사이)", 
+        sentence: "We're not dating, it's just a situationship." 
+      },
+      { 
+        word: "hard launch", 
+        meaning: "연애 공식 선포 (얼굴 공개)", 
+        sentence: "She finally hard-launched her boyfriend on Instagram." 
+      }
     ]
   }
 };
