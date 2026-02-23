@@ -1,4 +1,4 @@
-// main.js - Comprehensive App Logic with Real API Integration
+// main.js - Comprehensive App Logic with Kakao Share Integration
 
 const App = (() => {
   // DOM Elements
@@ -98,7 +98,8 @@ const App = (() => {
     battleOptions: document.getElementById('battleOptions'),
     battleResultTitle: document.getElementById('battleResultTitle'),
     battleReward: document.getElementById('battleReward'),
-    closeBattle: document.getElementById('closeBattle')
+    closeBattle: document.getElementById('closeBattle'),
+    shareBattleBtn: document.getElementById('shareBattleBtn')
   };
 
   const LESSON_DATA = {
@@ -459,27 +460,34 @@ const App = (() => {
   function setupBattleEvents() {
     if (elements.startBattleBtn) elements.startBattleBtn.addEventListener('click', tryStartBattle);
     if (elements.closeBattle) elements.closeBattle.addEventListener('click', () => switchSection('practice'));
+    if (elements.shareBattleBtn) elements.shareBattleBtn.addEventListener('click', shareBattleToKakao);
+  }
+
+  function shareBattleToKakao() {
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('Kakao SDK 로딩 중...');
+    const user = Store.getUser();
+    Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '⚔️ engz 결투 신청이 도착했습니다!',
+        description: `${user.name}님이 당신에게 50 XP 배틀을 신청했습니다. 도전을 수락하시겠습니까?`,
+        imageUrl: 'https://imhen97.github.io/wordlearning/logo_orange.png', 
+        link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+      },
+      buttons: [{ title: '도전 수락하기', link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }],
+    });
   }
 
   function tryStartBattle() {
     const user = Store.getUser();
-    if ((user.xp || 0) < 50) {
-      alert('XP가 부족합니다! 배틀에 참여하려면 최소 50 XP가 필요합니다.');
-      return;
-    }
+    if ((user.xp || 0) < 50) return alert('XP가 부족합니다! 배틀에 참여하려면 최소 50 XP가 필요합니다.');
     startMatchmaking();
   }
 
   function startMatchmaking() {
     switchSection('battle');
-    elements.battleLobby.style.display = 'block';
-    elements.battleGame.style.display = 'none';
-    elements.battleResult.style.display = 'none';
-    
-    elements.myBattleName.textContent = Store.getUser().name;
-    elements.oppBattleName.textContent = '찾는 중...';
-
-    // Simulate Matchmaking (2 seconds)
+    elements.battleLobby.style.display = 'block'; elements.battleGame.style.display = 'none'; elements.battleResult.style.display = 'none';
+    elements.myBattleName.textContent = Store.getUser().name; elements.oppBattleName.textContent = '찾는 중...';
     setTimeout(() => {
       const randomOpp = OPPONENTS[Math.floor(Math.random() * OPPONENTS.length)];
       elements.oppBattleName.textContent = randomOpp;
@@ -488,31 +496,18 @@ const App = (() => {
   }
 
   function startBattleRound() {
-    elements.battleLobby.style.display = 'none';
-    elements.battleGame.style.display = 'block';
-    
+    elements.battleLobby.style.display = 'none'; elements.battleGame.style.display = 'block';
     battleState = { currentIndex: 0, myScore: 0, oppScore: 0, timeLeft: 100 };
-    updateBattleScore();
-    nextBattleQuestion();
+    updateBattleScore(); nextBattleQuestion();
   }
 
   function nextBattleQuestion() {
-    if (battleState.currentIndex >= 5) {
-      endBattle();
-      return;
-    }
-
+    if (battleState.currentIndex >= 5) return endBattle();
     const q = TEST_QUESTIONS[battleState.currentIndex % TEST_QUESTIONS.length];
-    elements.battleQuestion.textContent = q.q;
-    elements.battleOptions.innerHTML = '';
-    
-    battleState.timeLeft = 100;
-    runBattleTimer();
-
+    elements.battleQuestion.textContent = q.q; elements.battleOptions.innerHTML = '';
+    battleState.timeLeft = 100; runBattleTimer();
     q.options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.className = 'option-btn';
-      btn.textContent = opt;
+      const btn = document.createElement('button'); btn.className = 'option-btn'; btn.textContent = opt;
       btn.addEventListener('click', () => handleBattleAnswer(opt, q.correct));
       elements.battleOptions.appendChild(btn);
     });
@@ -521,21 +516,9 @@ const App = (() => {
   function runBattleTimer() {
     clearInterval(battleState.timer);
     battleState.timer = setInterval(() => {
-      battleState.timeLeft -= 2;
-      elements.battleTimerBar.style.width = `${battleState.timeLeft}%`;
-      
-      // Simulate Opponent Answer
-      if (Math.random() > 0.95) {
-        const isCorrect = Math.random() > 0.4;
-        if (isCorrect) battleState.oppScore++;
-        updateBattleScore();
-      }
-
-      if (battleState.timeLeft <= 0) {
-        clearInterval(battleState.timer);
-        battleState.currentIndex++;
-        nextBattleQuestion();
-      }
+      battleState.timeLeft -= 2; elements.battleTimerBar.style.width = `${battleState.timeLeft}%`;
+      if (Math.random() > 0.95) { const isCorrect = Math.random() > 0.4; if (isCorrect) battleState.oppScore++; updateBattleScore(); }
+      if (battleState.timeLeft <= 0) { clearInterval(battleState.timer); battleState.currentIndex++; nextBattleQuestion(); }
     }, 100);
   }
 
@@ -543,44 +526,21 @@ const App = (() => {
     clearInterval(battleState.timer);
     if (selected === correct) battleState.myScore++;
     updateBattleScore();
-    setTimeout(() => {
-      battleState.currentIndex++;
-      nextBattleQuestion();
-    }, 500);
+    setTimeout(() => { battleState.currentIndex++; nextBattleQuestion(); }, 500);
   }
 
   function updateBattleScore() {
-    elements.myScore.textContent = battleState.myScore;
-    elements.oppScore.textContent = battleState.oppScore;
+    elements.myScore.textContent = battleState.myScore; elements.oppScore.textContent = battleState.oppScore;
   }
 
   function endBattle() {
-    elements.battleGame.style.display = 'none';
-    elements.battleResult.style.display = 'block';
-    
-    const isWin = battleState.myScore > battleState.oppScore;
-    const isDraw = battleState.myScore === battleState.oppScore;
-    
+    elements.battleGame.style.display = 'none'; elements.battleResult.style.display = 'block';
+    const isWin = battleState.myScore > battleState.oppScore; const isDraw = battleState.myScore === battleState.oppScore;
     let xpChange = 0;
-    if (isWin) {
-      xpChange = 50;
-      elements.battleResultTitle.textContent = 'WIN!';
-      elements.battleResultTitle.style.color = '#22c55e';
-      elements.battleReward.textContent = '+50 XP (상대방 XP 획득!)';
-    } else if (isDraw) {
-      xpChange = 0;
-      elements.battleResultTitle.textContent = 'DRAW';
-      elements.battleResultTitle.style.color = '#7e22ce';
-      elements.battleReward.textContent = '0 XP (배팅 금액 반환)';
-    } else {
-      xpChange = -50;
-      elements.battleResultTitle.textContent = 'LOSE...';
-      elements.battleResultTitle.style.color = '#ef4444';
-      elements.battleReward.textContent = '-50 XP (배팅 금액 상실)';
-    }
-
-    Gamification.awardXP('BATTLE', xpChange);
-    updateUI();
+    if (isWin) { xpChange = 50; elements.battleResultTitle.textContent = 'WIN!'; elements.battleResultTitle.style.color = '#22c55e'; elements.battleReward.textContent = '+50 XP (상대방 XP 획득!)'; }
+    else if (isDraw) { xpChange = 0; elements.battleResultTitle.textContent = 'DRAW'; elements.battleResultTitle.style.color = '#7e22ce'; elements.battleReward.textContent = '0 XP (배팅 금액 반환)'; }
+    else { xpChange = -50; elements.battleResultTitle.textContent = 'LOSE...'; elements.battleResultTitle.style.color = '#ef4444'; elements.battleReward.textContent = '-50 XP (배팅 금액 상실)'; }
+    const user = Store.getUser(); user.xp = (user.xp || 0) + xpChange; Store.setUser(user); updateUI();
   }
 
   function setupProfileEvents() {
