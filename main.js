@@ -1,4 +1,4 @@
-// main.js - Comprehensive App Logic with Social Login Stability
+// main.js - Comprehensive App Logic with Social Login Stability & Onboarding
 
 const App = (() => {
   // DOM Elements
@@ -26,6 +26,13 @@ const App = (() => {
     kakaoLogin: document.getElementById('kakaoLogin'),
     googleLogin: document.getElementById('googleLogin'),
     guestLogin: document.getElementById('guestLogin'),
+    logoutBtn: document.getElementById('logoutBtn'),
+
+    // Onboarding Elements
+    onboardingSection: document.getElementById('onboardingSection'),
+    onboardingNickname: document.getElementById('onboardingNickname'),
+    genderBtns: document.querySelectorAll('.btn-gender'),
+    saveOnboardingBtn: document.getElementById('saveOnboardingBtn'),
 
     // Learning Elements
     learningSection: document.getElementById('learningSection'),
@@ -173,10 +180,12 @@ const App = (() => {
   let quizState = { currentIndex: 0, questions: [], correctCount: 0 };
   let testState = { currentIndex: 0, score: 0, startTime: null };
   let battleState = { currentIndex: 0, myScore: 0, oppScore: 0, timer: null, timeLeft: 100 };
+  let onboardingData = { gender: '' };
 
   function init() {
     initAuthSDKs();
     setupAuthEvents();
+    setupOnboardingEvents();
     setupNavigation();
     if (elements.headerProfileBtn) {
       elements.headerProfileBtn.addEventListener('click', () => {
@@ -202,12 +211,12 @@ const App = (() => {
     const KAKAO_KEY = 'd0b6904f303c56f56e8863a135da347f';
     const GOOGLE_CLIENT_ID = '788651995754-gtaeksuj0ndhmtc76mjsccfg6u2c67sr.apps.googleusercontent.com';
 
-    // Kakao Init (v1)
+    // Kakao Init (v2)
     const tryInitKakao = (retries = 0) => {
       if (typeof Kakao !== 'undefined') {
         if (!Kakao.isInitialized()) {
           Kakao.init(KAKAO_KEY);
-          console.log('Kakao SDK v1 Initialized');
+          console.log('Kakao SDK Initialized');
         }
       } else if (retries < 10) {
         setTimeout(() => tryInitKakao(retries + 1), 500);
@@ -247,34 +256,73 @@ const App = (() => {
     if (elements.guestLogin) elements.guestLogin.addEventListener('click', () => onLoginSuccess('게스트', 'guest'));
   }
 
+  function setupOnboardingEvents() {
+    elements.genderBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        elements.genderBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        onboardingData.gender = btn.getAttribute('data-gender');
+      });
+    });
+
+    if (elements.saveOnboardingBtn) {
+      elements.saveOnboardingBtn.addEventListener('click', () => {
+        const name = elements.onboardingNickname.value.trim();
+        if (!name) return alert('닉네임을 입력해 주세요.');
+        if (!onboardingData.gender) return alert('성별을 선택해 주세요.');
+
+        const user = Store.getUser();
+        user.name = name;
+        user.gender = onboardingData.gender;
+        user.onboarded = true;
+        Store.setUser(user);
+
+        alert('프로필 설정 완료! 실력 진단 테스트를 시작합니다.');
+        startTest();
+      });
+    }
+  }
+
   function loginWithKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중...');
-    
-    // Use v1 style login
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다.');
     Kakao.Auth.login({
-      success: function(authObj) {
+      success: () => {
         Kakao.API.request({
           url: '/v2/user/me',
-          success: function(res) {
-            onLoginSuccess(res.properties.nickname, 'kakao');
-          },
-          fail: function(error) {
-            console.error('Kakao API Request Fail', error);
-            alert('카카오 사용자 정보를 가져오는데 실패했습니다.');
+          success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao'),
+          fail: (err) => {
+            console.error('Kakao User Info Error:', err);
+            alert('사용자 정보를 가져오지 못했습니다.');
           }
         });
       },
-      fail: function(err) {
-        console.error('Kakao Login Fail', err);
-        alert('카카오 로그인에 실패했습니다. 사이트 도메인이 등록되어 있는지 확인해주세요.');
+      fail: (err) => {
+        console.error('Kakao Login Error:', err);
+        alert('카카오 로그인에 실패했습니다.');
       }
     });
   }
 
   function onLoginSuccess(name, type) {
     const user = Store.getUser();
-    user.name = name; user.isLoggedIn = true; user.authType = type;
-    Store.setUser(user); completeLogin();
+    user.name = name; 
+    user.isLoggedIn = true; 
+    user.authType = type;
+    Store.setUser(user); 
+    
+    if (!user.onboarded) {
+      showOnboarding();
+    } else {
+      completeLogin();
+    }
+  }
+
+  function showOnboarding() {
+    elements.loginSection.style.display = 'none';
+    elements.onboardingSection.style.display = 'block';
+    if (elements.appHeader) elements.appHeader.style.display = 'none';
+    if (elements.bottomNav) elements.bottomNav.style.display = 'none';
+    elements.onboardingNickname.value = Store.getUser().name;
   }
 
   function showLogin() {
@@ -286,6 +334,7 @@ const App = (() => {
 
   function completeLogin() {
     elements.loginSection.style.display = 'none';
+    elements.onboardingSection.style.display = 'none';
     if (elements.appHeader) elements.appHeader.style.display = 'flex';
     if (elements.bottomNav) elements.bottomNav.style.display = 'flex';
     switchSection('home'); updateUI();
@@ -299,9 +348,9 @@ const App = (() => {
   }
 
   function switchSection(target) {
-    const isSpecial = ['learning', 'quiz', 'test', 'result', 'login', 'battle'].includes(target);
+    const isSpecial = ['learning', 'quiz', 'test', 'result', 'login', 'battle', 'onboarding'].includes(target);
     if (elements.bottomNav) elements.bottomNav.style.display = isSpecial ? 'none' : 'flex';
-    if (elements.appHeader) elements.appHeader.style.display = target === 'login' ? 'none' : 'flex';
+    if (elements.appHeader) elements.appHeader.style.display = (target === 'login' || target === 'onboarding') ? 'none' : 'flex';
     elements.navItems.forEach(nav => nav.classList.toggle('active', nav.getAttribute('data-target') === target));
     elements.sections.forEach(section => { if (section) section.style.display = section.id === `${target}Section` ? 'block' : 'none'; });
   }
@@ -607,6 +656,12 @@ const App = (() => {
     if (elements.editNameBtn) elements.editNameBtn.addEventListener('click', () => {
       const newName = prompt('새로운 이름을 입력하세요:', Store.getUser().name);
       if (newName && newName.trim()) { const user = Store.getUser(); user.name = newName.trim(); Store.setUser(user); updateUI(); }
+    });
+    if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', () => {
+      if (confirm('로그아웃 하시겠습니까?')) {
+        localStorage.removeItem('vk_user');
+        location.reload();
+      }
     });
     if (elements.resetProgressBtn) elements.resetProgressBtn.addEventListener('click', () => {
       if (confirm('모든 학습 데이터가 초기화됩니다. 정말 진행하시겠습니까?')) { localStorage.clear(); location.reload(); }

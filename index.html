@@ -257,6 +257,32 @@
         </div>
       </section>
 
+      <!-- Onboarding Section -->
+      <section id="onboardingSection" class="section" style="display: none;">
+        <div class="welcome-msg">
+          <h2>반가워요! 처음이시네요 😊</h2>
+          <p>더 나은 학습 경험을 위해 간단한 정보를 알려주세요.</p>
+        </div>
+
+        <div class="mini-card" style="width: 100%; margin-bottom: 20px;">
+          <div class="settings-group">
+            <h3>닉네임</h3>
+            <input type="text" id="onboardingNickname" class="form-input" placeholder="이름을 입력하세요" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #e5e7eb; font-weight: 700;">
+          </div>
+          
+          <div class="settings-group" style="margin-top: 20px;">
+            <h3>성별</h3>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-gender" data-gender="male">남성</button>
+              <button class="btn-gender" data-gender="female">여성</button>
+              <button class="btn-gender" data-gender="other">기타</button>
+            </div>
+          </div>
+        </div>
+
+        <button id="saveOnboardingBtn" class="btn-primary" style="width: 100%;">시작하기</button>
+      </section>
+
       <!-- Profile Section -->
       <section id="profileSection" class="section" style="display: none;">
         <div class="profile-header">
@@ -300,12 +326,11 @@
             </div>
             <i data-lucide="chevron-right" class="chevron"></i>
           </div>
-          <div class="settings-item">
+          <div class="settings-item danger" id="logoutBtn">
             <div class="item-left">
-              <i data-lucide="bell"></i>
-              <span>학습 알림 설정</span>
+              <i data-lucide="log-out"></i>
+              <span>로그아웃</span>
             </div>
-            <div class="toggle-mock"></div>
           </div>
         </div>
 

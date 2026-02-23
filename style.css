@@ -876,3 +876,39 @@ body {
   background: #ef4444;
   transition: width 0.1s linear;
 }
+
+/* Onboarding & Forms */
+.btn-gender {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-gender.active {
+  border-color: var(--primary);
+  background: #fff7ed;
+  color: var(--primary);
+}
+
+.btn-primary {
+  height: 56px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--primary-dark);
+  transition: transform 0.1s;
+}
+
+.btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
