@@ -1,4 +1,4 @@
-// main.js - Comprehensive App Logic with Kakao Share Integration
+// main.js - Comprehensive App Logic with Social Login Stability
 
 const App = (() => {
   // DOM Elements
@@ -202,12 +202,12 @@ const App = (() => {
     const KAKAO_KEY = 'd0b6904f303c56f56e8863a135da347f';
     const GOOGLE_CLIENT_ID = '788651995754-gtaeksuj0ndhmtc76mjsccfg6u2c67sr.apps.googleusercontent.com';
 
-    // Kakao Initialization with retry
+    // Kakao Init (v1)
     const tryInitKakao = (retries = 0) => {
       if (typeof Kakao !== 'undefined') {
         if (!Kakao.isInitialized()) {
           Kakao.init(KAKAO_KEY);
-          console.log('Kakao SDK Initialized');
+          console.log('Kakao SDK v1 Initialized');
         }
       } else if (retries < 10) {
         setTimeout(() => tryInitKakao(retries + 1), 500);
@@ -215,13 +215,13 @@ const App = (() => {
     };
     tryInitKakao();
 
-    // Google Initialization with retry
+    // Google Init
     window.handleGoogleResponse = (response) => {
       try {
         const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         onLoginSuccess(payload.name, 'google');
       } catch (e) {
-        console.error('Google Auth Parse Error:', e);
+        console.error('Google Auth Error:', e);
       }
     };
 
@@ -231,7 +231,6 @@ const App = (() => {
           client_id: GOOGLE_CLIENT_ID,
           callback: window.handleGoogleResponse
         });
-        console.log('Google SDK Initialized');
       } else if (retries < 10) {
         setTimeout(() => tryInitGoogle(retries + 1), 500);
       }
@@ -242,32 +241,31 @@ const App = (() => {
   function setupAuthEvents() {
     if (elements.kakaoLogin) elements.kakaoLogin.addEventListener('click', loginWithKakao);
     if (elements.googleLogin) elements.googleLogin.addEventListener('click', () => {
-      if (typeof google === 'undefined' || !google.accounts) return alert('구글 SDK 로딩 중입니다. 1~2초 후 다시 시도해주세요.');
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed()) {
-          console.log('Google Prompt Error:', notification.getNotDisplayedReason());
-          alert('구글 로그인 팝업을 띄울 수 없습니다. 브라우저 설정에서 팝업 차단을 해제하거나 다른 브라우저를 사용해 보세요.');
-        }
-      });
+      if (typeof google === 'undefined' || !google.accounts) return alert('구글 SDK 로딩 중...');
+      google.accounts.id.prompt();
     });
     if (elements.guestLogin) elements.guestLogin.addEventListener('click', () => onLoginSuccess('게스트', 'guest'));
   }
 
   function loginWithKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다. 1~2초 후 다시 시도해주세요.');
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중...');
+    
+    // Use v1 style login
     Kakao.Auth.login({
-      success: () => {
+      success: function(authObj) {
         Kakao.API.request({
           url: '/v2/user/me',
-          success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao'),
-          fail: (err) => {
-            console.error('Kakao User Info Error:', err);
-            alert('사용자 정보를 가져오지 못했습니다. 카카오 개발자 센터의 도메인 설정을 확인해주세요.');
+          success: function(res) {
+            onLoginSuccess(res.properties.nickname, 'kakao');
+          },
+          fail: function(error) {
+            console.error('Kakao API Request Fail', error);
+            alert('카카오 사용자 정보를 가져오는데 실패했습니다.');
           }
         });
       },
-      fail: (err) => {
-        console.error('Kakao Login Error:', err);
+      fail: function(err) {
+        console.error('Kakao Login Fail', err);
         alert('카카오 로그인에 실패했습니다. 사이트 도메인이 등록되어 있는지 확인해주세요.');
       }
     });
@@ -275,11 +273,8 @@ const App = (() => {
 
   function onLoginSuccess(name, type) {
     const user = Store.getUser();
-    user.name = name; 
-    user.isLoggedIn = true; 
-    user.authType = type;
-    Store.setUser(user); 
-    completeLogin();
+    user.name = name; user.isLoggedIn = true; user.authType = type;
+    Store.setUser(user); completeLogin();
   }
 
   function showLogin() {
