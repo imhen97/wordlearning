@@ -591,7 +591,7 @@ const App = (() => {
       const user = Store.getUser();
       const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
-      // Clean URL: Origin only to match registered domain exactly
+      // Clean URL: Use the EXACT origin provided by the user
       const baseAppUrl = window.location.origin + '/'; 
       const challengeUrl = `${baseAppUrl}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
 
