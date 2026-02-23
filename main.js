@@ -52,6 +52,7 @@ const levelTestSection = document.getElementById('levelTestSection');
 const quizSection = document.getElementById('quizSection');
 const recommendationSection = document.getElementById('recommendationSection');
 const mainAppSection = document.getElementById('mainAppSection');
+const inquirySection = document.getElementById('inquirySection');
 
 const startLevelTestBtn = document.getElementById('startLevelTest');
 const quizQuestion = document.getElementById('quizQuestion');
@@ -71,12 +72,15 @@ const toggleModeBtn = document.getElementById('toggleMode');
 const retakeTestBtn = document.getElementById('retakeTest');
 const appTitle = document.getElementById('appTitle');
 
+const openInquiryBtn = document.getElementById('openInquiry');
+const closeInquiryBtn = document.getElementById('closeInquiry');
+
 // State for Level Test
 let testIndex = 0;
 let testScore = 0;
 
 function showSection(sectionId) {
-  [levelTestSection, quizSection, recommendationSection, mainAppSection].forEach(section => {
+  [levelTestSection, quizSection, recommendationSection, mainAppSection, inquirySection].forEach(section => {
     section.style.display = section.id === sectionId ? 'block' : 'none';
   });
 }
@@ -180,6 +184,13 @@ toggleModeBtn.onclick = () => {
 retakeTestBtn.onclick = () => {
   localStorage.removeItem('userLevel');
   showSection('levelTestSection');
+};
+
+openInquiryBtn.onclick = () => showSection('inquirySection');
+closeInquiryBtn.onclick = () => {
+  const level = localStorage.getItem('userLevel');
+  if (level) startCourse();
+  else showSection('levelTestSection');
 };
 
 // Initialization
