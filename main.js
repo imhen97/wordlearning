@@ -590,11 +590,12 @@ const App = (() => {
     try {
       const user = Store.getUser();
       const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      // Use clean URL without existing query params to avoid domain mismatch
-      const baseAppUrl = window.location.origin + window.location.pathname;
+      
+      // Clean URL: Origin only to match registered domain exactly
+      const baseAppUrl = window.location.origin + '/'; 
       const challengeUrl = `${baseAppUrl}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
 
-      console.log('Sharing Challenge URL:', challengeUrl);
+      console.log('Sending Kakao Share with URL:', challengeUrl);
 
       Kakao.Share.sendDefault({
         objectType: 'feed',
@@ -616,17 +617,10 @@ const App = (() => {
             },
           },
         ],
-        callback: function() {
-          console.log('Share Success');
-        },
-        fail: function(err) {
-          console.error('Share Fail Callback:', err);
-          alert('공유에 실패했습니다. 도메인 등록 여부를 확인해 주세요.');
-        }
       });
     } catch (e) {
-      console.error('Kakao Share Exception:', e);
-      alert('공유 중 오류가 발생했습니다.');
+      console.error('Kakao Share Error:', e);
+      alert('공유 시도 중 오류가 발생했습니다.');
     }
   }
 
