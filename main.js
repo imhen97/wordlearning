@@ -4,11 +4,11 @@ const App = (() => {
   // DOM Elements
   const elements = {
     streakCount: document.getElementById('streakCount'),
-    totalXp: document.getElementById('totalXp'),
+    totalCoins: document.getElementById('totalCoins'),
     userLevelIcon: document.getElementById('userLevelIcon'),
     userLevelTitle: document.getElementById('userLevelTitle'),
     userName: document.getElementById('userName'),
-    remainingXp: document.getElementById('remainingXp'),
+    remainingCoins: document.getElementById('remainingCoins'),
     dailyProgressBar: document.getElementById('dailyProgressBar'),
     dailyProgressText: document.getElementById('dailyProgressText'),
     navItems: document.querySelectorAll('.nav-item'),
@@ -69,7 +69,7 @@ const App = (() => {
     profileName: document.getElementById('profileName'),
     profileLevelIcon: document.getElementById('profileLevelIcon'),
     profileLevelTitle: document.getElementById('profileLevelTitle'),
-    statTotalXp: document.getElementById('statTotalXp'),
+    statTotalCoins: document.getElementById('statTotalCoins'),
     statStreak: document.getElementById('statStreak'),
     statLevel: document.getElementById('statLevel'),
     editNameBtn: document.getElementById('editNameBtn'),
@@ -359,10 +359,10 @@ const App = (() => {
   function updateUI() {
     const user = Store.getUser();
     const streak = Gamification.updateStreak();
-    const levelInfo = Gamification.getLevelInfo(user.xp);
+    const levelInfo = Gamification.getLevelInfo(user.coins);
     const daily = Gamification.getDailyProgress();
     if (elements.streakCount) elements.streakCount.textContent = streak.count || 0;
-    if (elements.totalXp) elements.totalXp.textContent = user.xp || 0;
+    if (elements.totalCoins) elements.totalCoins.textContent = user.coins || 0;
     if (elements.userLevelIcon) elements.userLevelIcon.textContent = levelInfo.current.icon;
     if (elements.userLevelTitle) elements.userLevelTitle.textContent = levelInfo.current.title;
     if (elements.userName) elements.userName.textContent = user.name;
@@ -374,13 +374,13 @@ const App = (() => {
       elements.headerUserIcon.textContent = isGuest ? '로그인' : levelInfo.current.icon;
     }
 
-    if (elements.remainingXp) elements.remainingXp.textContent = Math.max(0, daily.goal - daily.current);
+    if (elements.remainingCoins) elements.remainingCoins.textContent = Math.max(0, daily.goal - daily.current);
     if (elements.dailyProgressBar) elements.dailyProgressBar.style.width = `${daily.pct}%`;
     if (elements.dailyProgressText) elements.dailyProgressText.textContent = `${daily.cards}/${daily.goalCards}`;
     if (elements.profileName) elements.profileName.textContent = `${user.name}님`;
     if (elements.profileLevelIcon) elements.profileLevelIcon.textContent = levelInfo.current.icon;
     if (elements.profileLevelTitle) elements.profileLevelTitle.textContent = `${levelInfo.current.title} (Level ${levelInfo.current.level})`;
-    if (elements.statTotalXp) elements.statTotalXp.textContent = user.xp;
+    if (elements.statTotalCoins) elements.statTotalCoins.textContent = user.coins;
     if (elements.statStreak) elements.statStreak.textContent = streak.count;
     if (elements.statLevel) elements.statLevel.textContent = levelInfo.current.level;
     if (elements.testStatusText) {
@@ -429,7 +429,7 @@ const App = (() => {
     elements.activeCard.style.opacity = '0';
     setTimeout(() => {
       if (feedback) feedback.style.opacity = '0';
-      Gamification.awardXP('CARD_SEEN');
+      Gamification.awardCoins('CARD_SEEN');
       lessonState.currentIndex++;
       if (lessonState.currentIndex < lessonState.currentList.length) {
         elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = 'none';
@@ -441,8 +441,8 @@ const App = (() => {
   }
 
   function finishLesson() {
-    alert('오늘의 학습 완료! XP 보너스를 획득했습니다.');
-    Gamification.awardXP('DAILY_GOAL'); switchSection('home');
+    alert('오늘의 학습 완료! 코인 보너스를 획득했습니다.');
+    Gamification.awardCoins('DAILY_GOAL'); switchSection('home');
   }
 
   function setupLessonEvents() {
@@ -496,7 +496,7 @@ const App = (() => {
     const isCorrect = selected === correct;
     btn.classList.add(isCorrect ? 'correct' : 'wrong');
     if (!isCorrect) Array.from(elements.quizOptions.children).forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-    else { quizState.correctCount++; Gamification.awardXP('QUIZ_CORRECT'); }
+    else { quizState.correctCount++; Gamification.awardCoins('QUIZ_CORRECT'); }
     elements.feedbackStatus.textContent = isCorrect ? '정답입니다!' : '아쉬워요!';
     elements.feedbackMeaning.textContent = `${quizState.questions[quizState.currentIndex].word}: ${correct}`;
     elements.quizFeedback.style.display = 'block';
@@ -517,7 +517,7 @@ const App = (() => {
 
   function finishQuiz() {
     alert(`퀴즈 완료! 성적: ${quizState.correctCount}/${quizState.questions.length}`);
-    if (quizState.correctCount === quizState.questions.length) Gamification.awardXP('PERFECT_SESSION');
+    if (quizState.correctCount === quizState.questions.length) Gamification.awardCoins('PERFECT_SESSION');
     switchSection('practice');
   }
 
@@ -579,7 +579,7 @@ const App = (() => {
       objectType: 'feed',
       content: {
         title: '⚔️ engz 결투 신청이 도착했습니다!',
-        description: `${user.name}님이 당신에게 50 XP 배틀을 신청했습니다. 도전을 수락하시겠습니까?`,
+        description: `${user.name}님이 당신에게 50 코인 배틀을 신청했습니다. 도전을 수락하시겠습니까?`,
         imageUrl: 'https://imhen97.github.io/wordlearning/logo_orange.png', 
         link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
       },
@@ -589,7 +589,7 @@ const App = (() => {
 
   function tryStartBattle() {
     const user = Store.getUser();
-    if ((user.xp || 0) < 50) return alert('XP가 부족합니다! 배틀에 참여하려면 최소 50 XP가 필요합니다.');
+    if ((user.coins || 0) < 50) return alert('코인이 부족합니다! 배틀에 참여하려면 최소 50 코인이 필요합니다.');
     startMatchmaking();
   }
 
@@ -645,11 +645,11 @@ const App = (() => {
   function endBattle() {
     elements.battleGame.style.display = 'none'; elements.battleResult.style.display = 'block';
     const isWin = battleState.myScore > battleState.oppScore; const isDraw = battleState.myScore === battleState.oppScore;
-    let xpChange = 0;
-    if (isWin) { xpChange = 50; elements.battleResultTitle.textContent = 'WIN!'; elements.battleResultTitle.style.color = '#22c55e'; elements.battleReward.textContent = '+50 XP (상대방 XP 획득!)'; }
-    else if (isDraw) { xpChange = 0; elements.battleResultTitle.textContent = 'DRAW'; elements.battleResultTitle.style.color = '#7e22ce'; elements.battleReward.textContent = '0 XP (배팅 금액 반환)'; }
-    else { xpChange = -50; elements.battleResultTitle.textContent = 'LOSE...'; elements.battleResultTitle.style.color = '#ef4444'; elements.battleReward.textContent = '-50 XP (배팅 금액 상실)'; }
-    const user = Store.getUser(); user.xp = (user.xp || 0) + xpChange; Store.setUser(user); updateUI();
+    let coinChange = 0;
+    if (isWin) { coinChange = 50; elements.battleResultTitle.textContent = 'WIN!'; elements.battleResultTitle.style.color = '#22c55e'; elements.battleReward.textContent = '+50 코인 (상대방 코인 획득!)'; }
+    else if (isDraw) { coinChange = 0; elements.battleResultTitle.textContent = 'DRAW'; elements.battleResultTitle.style.color = '#7e22ce'; elements.battleReward.textContent = '0 코인 (배팅 금액 반환)'; }
+    else { coinChange = -50; elements.battleResultTitle.textContent = 'LOSE...'; elements.battleResultTitle.style.color = '#ef4444'; elements.battleReward.textContent = '-50 코인 (배팅 금액 상실)'; }
+    const user = Store.getUser(); user.coins = (user.coins || 0) + coinChange; Store.setUser(user); updateUI();
   }
 
   function setupProfileEvents() {

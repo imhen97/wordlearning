@@ -48,9 +48,9 @@
             <i data-lucide="flame"></i>
             <span id="streakCount">0</span>
           </div>
-          <div class="stat-item xp">
-            <i data-lucide="zap"></i>
-            <span id="totalXp">0</span>
+          <div class="stat-item coins">
+            <i data-lucide="coins"></i>
+            <span id="totalCoins">0</span>
           </div>
         </div>
         <button id="headerProfileBtn" class="header-profile-btn">
@@ -63,7 +63,7 @@
       <section id="homeSection" class="section">
         <div class="welcome-msg">
           <h2>안녕하세요, <span id="userName">학습자</span>님! 👋</h2>
-          <p>오늘의 학습 목표까지 <strong><span id="remainingXp">20</span> XP</strong> 남았어요.</p>
+          <p>오늘의 학습 목표까지 <strong><span id="remainingCoins">20</span> 코인</strong> 남았어요.</p>
         </div>
 
         <div class="main-card primary-action" id="startTodayLesson">
@@ -116,14 +116,14 @@
       <section id="practiceSection" class="section" style="display: none;">
         <div class="welcome-msg">
           <h2>연습 모드 🎯</h2>
-          <p>퀴즈로 실력을 확인하고 추가 XP를 획득하세요.</p>
+          <p>퀴즈로 실력을 확인하고 추가 코인을 획득하세요.</p>
         </div>
         
         <div class="main-card primary-action" id="startQuizBtn" style="background: #ff9600; box-shadow: 0 6px 0 #cc7800;">
           <div class="card-content">
             <span class="tag" style="background: rgba(255,255,255,0.2)">DAILY CHALLENGE</span>
             <h3>오늘의 단어 퀴즈</h3>
-            <p>5문제를 맞히고 50 XP 보너스 받기</p>
+            <p>5문제를 맞히고 50 코인 보너스 받기</p>
           </div>
           <div class="card-icon"><i data-lucide="award"></i></div>
         </div>
@@ -142,8 +142,8 @@
         <div class="main-card primary-action" id="startBattleBtn" style="background: #ef4444; box-shadow: 0 6px 0 #b91c1c; margin-top: 15px;">
           <div class="card-content">
             <span class="tag" style="background: rgba(255,255,255,0.2)">PVP BATTLE</span>
-            <h3>1:1 XP 뺏기 배틀</h3>
-            <p>상대를 이기고 50 XP를 뺏어오세요!</p>
+            <h3>1:1 코인 뺏기 배틀</h3>
+            <p>상대를 이기고 50 코인을 뺏어오세요!</p>
           </div>
           <div class="card-icon"><i data-lucide="swords"></i></div>
         </div>
@@ -171,7 +171,7 @@
             </div>
           </div>
           <div id="bettingInfo" style="margin-top: 20px; font-weight: 700; color: #ef4444;">
-            <i data-lucide="zap" style="width: 16px; display: inline-block;"></i> 배팅: 50 XP
+            <i data-lucide="coins" style="width: 16px; display: inline-block;"></i> 배팅: 50 코인
           </div>
 
           <!-- Kakao Share Button -->
@@ -207,7 +207,7 @@
         <div id="battleResult" style="display: none; text-align: center; padding-top: 50px;">
           <h1 id="battleResultTitle" style="font-size: 3rem; margin-bottom: 10px;">WIN!</h1>
           <div id="battleReward" style="font-size: 1.5rem; font-weight: 800; color: #ff9600; margin-bottom: 40px;">
-            +50 XP
+            +50 코인
           </div>
           <button id="closeBattle" class="btn-primary" style="width: 100%;">돌아가기</button>
         </div>
@@ -295,10 +295,10 @@
 
         <div class="stats-grid">
           <div class="stat-card">
-            <i data-lucide="zap" style="color: #3b82f6;"></i>
+            <i data-lucide="coins" style="color: #3b82f6;"></i>
             <div class="stat-info">
-              <span class="stat-value" id="statTotalXp">0</span>
-              <span class="stat-label">누적 XP</span>
+              <span class="stat-value" id="statTotalCoins">0</span>
+              <span class="stat-label">누적 코인</span>
             </div>
           </div>
           <div class="stat-card">

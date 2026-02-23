@@ -1,46 +1,47 @@
-// store.js — localStorage read/write layer
+// store.js - LocalStorage Wrapper for Data Persistence
+
 const Store = (() => {
   const KEYS = {
     USER: 'vk_user',
-    PROGRESS: 'vk_progress',
-    STREAK: 'vk_streak',
     DAILY: 'vk_daily',
-    PREMIUM: 'vk_premium',
-    ONBOARDED: 'vk_onboarded'
+    HISTORY: 'vk_history'
   };
 
-  const get = (key, defaultVal = {}) => {
+  const get = (key, defaultVal) => {
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : defaultVal;
   };
 
-  const set = (key, val) => {
-    localStorage.setItem(key, JSON.stringify(val));
-  };
+  const set = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
   return {
-    getUser: () => get(KEYS.USER, { 
-      name: '학습자', 
-      xp: 0, 
+    getUser: () => get(KEYS.USER, {
+      name: '학습자',
+      isLoggedIn: false,
+      onboarded: false,
+      coins: 0,
+      streak: 0,
+      lastLearnDate: null,
       dailyGoal: 10,
       currentRank: 'Unranked',
-      lastTestDate: null,
-      isLoggedIn: false,
-      authType: null
+      authType: 'guest'
     }),
-    setUser: (data) => set(KEYS.USER, data),
-    
-    getDaily: () => {
-      const today = new Date().toISOString().split('T')[0];
-      const daily = get(KEYS.DAILY, { date: today, xp: 0, cards: 0, goalAwarded: false });
+    setUser: (user) => set(KEYS.USER, user),
+
+    getDailyProgress: () => {
+      const today = new Date().toDateString();
+      const daily = get(KEYS.DAILY, { date: today, coins: 0, cards: 0, goalAwarded: false });
       if (daily.date !== today) {
-        return { date: today, xp: 0, cards: 0, goalAwarded: false };
+        return { date: today, coins: 0, cards: 0, goalAwarded: false };
       }
       return daily;
     },
-    setDaily: (data) => set(KEYS.DAILY, data),
+    setDailyProgress: (data) => set(KEYS.DAILY, data),
 
-    getStreak: () => get(KEYS.STREAK, { count: 0, lastDate: null }),
-    setStreak: (data) => set(KEYS.STREAK, data)
+    saveHistory: (event) => {
+      const history = get(KEYS.HISTORY, []);
+      history.push({ ...event, timestamp: new Date().toISOString() });
+      set(KEYS.HISTORY, history.slice(-50)); // Keep last 50 events
+    }
   };
 })();
