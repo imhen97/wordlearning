@@ -173,7 +173,7 @@ const App = (() => {
     { q: 'The term "Piece of cake" means:', options: ['Very difficult', 'Delicious', 'Very easy', 'A small slice'], correct: 'Very easy' }
   ];
 
-  // Battle Opponents
+  // Battle Opponents (Fallback)
   const OPPONENTS = ['John', 'Emma', 'David', 'Sarah', 'Michael', 'Kate', 'Alex', 'Olivia'];
 
   let lessonState = { currentIndex: 0, isFlipped: false, currentList: [] };
@@ -201,6 +201,14 @@ const App = (() => {
     setupBattleEvents();
     renderLibrary();
     
+    // Check for Deep Link (Challenge)
+    const urlParams = new URLSearchParams(window.location.search);
+    const challengeId = urlParams.get('challenge');
+    
+    if (challengeId) {
+      handleChallenge(challengeId);
+    }
+
     const user = Store.getUser();
     if (user.isLoggedIn) completeLogin();
     else showLogin();
@@ -574,17 +582,55 @@ const App = (() => {
 
   function shareBattleToKakao() {
     if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('Kakao SDK 로딩 중...');
+    
+    // Generate a unique challenge ID using timestamp + user ID (simple hash)
     const user = Store.getUser();
+    const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const challengeUrl = `${window.location.origin}${window.location.pathname}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
+
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: '⚔️ engz 결투 신청이 도착했습니다!',
-        description: `${user.name}님이 당신에게 50 코인 배틀을 신청했습니다. 도전을 수락하시겠습니까?`,
+        title: `⚔️ ${user.name}님의 결투 신청!`,
+        description: '50 코인을 건 승부가 시작됩니다. 지금 바로 도전하세요!',
         imageUrl: 'https://imhen97.github.io/wordlearning/logo_orange.png', 
-        link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+        link: {
+          mobileWebUrl: challengeUrl,
+          webUrl: challengeUrl,
+        },
       },
-      buttons: [{ title: '도전 수락하기', link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }],
+      buttons: [
+        {
+          title: '도전 수락하기',
+          link: {
+            mobileWebUrl: challengeUrl,
+            webUrl: challengeUrl,
+          },
+        },
+      ],
     });
+  }
+
+  function handleChallenge(challengeId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviterName = urlParams.get('inviter') || '익명의 도전자';
+    
+    // Auto-navigate to battle screen if logged in
+    const user = Store.getUser();
+    if (user.isLoggedIn) {
+      if (confirm(`${inviterName}님의 결투 신청이 도착했습니다! 지금 바로 배틀을 시작하시겠습니까?`)) {
+        setTimeout(() => {
+          switchSection('battle');
+          elements.battleLobby.style.display = 'block'; 
+          elements.battleGame.style.display = 'none'; 
+          elements.battleResult.style.display = 'none';
+          elements.myBattleName.textContent = user.name; 
+          elements.oppBattleName.textContent = inviterName;
+          
+          setTimeout(() => startBattleRound(), 2000);
+        }, 500);
+      }
+    }
   }
 
   function tryStartBattle() {
