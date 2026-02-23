@@ -2,84 +2,274 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>영어 문장 학습기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vocab - Fun English Expression</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <div class="container">
-    <!-- Level Test Section -->
-    <div id="levelTestSection">
-      <h1>Welcome to English Vocab!</h1>
-      <p>Let's find the best course for you.</p>
-      <button id="startLevelTest" class="btn-primary">Take Level Test</button>
-    </div>
-
-    <!-- Test Quiz Section (Hidden by default) -->
-    <div id="quizSection" style="display: none;">
-      <h2 id="quizQuestion">Question 1/5</h2>
-      <div id="quizWord" class="word">?</div>
-      <div id="quizOptions" class="controls" style="margin-top: 2rem;">
-        <!-- Options will be injected here -->
+  <div class="app-container">
+    <header class="header">
+      <div class="level-badge">
+        <span id="userLevelIcon">🌱</span>
+        <span id="userLevelTitle">입문자</span>
       </div>
-    </div>
-
-    <!-- Recommendation Section (Hidden by default) -->
-    <div id="recommendationSection" style="display: none;">
-      <h2>Your Recommended Course</h2>
-      <div id="recommendedCourse" class="word" style="font-size: 1.8rem; margin: 1rem 0;">-</div>
-      <p id="courseDesc">Based on your level, we recommend this course.</p>
-      <button id="startCourse" class="btn-primary">Start Learning</button>
-    </div>
-
-    <!-- Main App Section (Hidden by default) -->
-    <div id="mainAppSection" style="display: none;">
-      <div class="mode-toggle">
-        <button id="toggleMode" class="btn-secondary">학습 모드 전환</button>
-      </div>
-      
-      <h1 id="appTitle">English Vocab</h1>
-      
-      <div id="vocabCard" class="card">
-        <div id="wordDisplay" class="word">Loading...</div>
-        <div id="meaningDisplay" class="meaning">뜻</div>
-        <div id="sentenceDisplay" class="sentence">문장</div>
-      </div>
-
-      <div class="controls">
-        <button id="showAnswer" class="btn-secondary">정답 보기</button>
-        <button id="nextWord" class="btn-primary">다음 단어</button>
-      </div>
-      <button id="retakeTest" class="btn-secondary" style="margin-top: 20px; font-size: 0.8rem;">레벨테스트 다시 하기</button>
-    </div>
-
-    <!-- Inquiry Section (Hidden by default) -->
-    <div id="inquirySection" style="display: none;">
-      <h2>제휴 문의</h2>
-      <form action="https://formspree.io/f/xaqdleyr" method="POST" id="inquiryForm">
-        <div class="form-group">
-          <label for="name">성함/업체명</label>
-          <input type="text" name="name" id="name" required placeholder="홍길동">
+      <div class="stats">
+        <div class="stat-item streak">
+          <i data-lucide="flame"></i>
+          <span id="streakCount">0</span>
         </div>
-        <div class="form-group">
-          <label for="email">이메일 주소</label>
-          <input type="email" name="_replyto" id="email" required placeholder="example@email.com">
+        <div class="stat-item xp">
+          <i data-lucide="zap"></i>
+          <span id="totalXp">0</span>
         </div>
-        <div class="form-group">
-          <label for="message">문의 내용</label>
-          <textarea name="message" id="message" rows="5" required placeholder="제휴 관련 문의 내용을 입력해주세요."></textarea>
-        </div>
-        <button type="submit" class="btn-primary">문의 보내기</button>
-        <button type="button" id="closeInquiry" class="btn-secondary" style="margin-top: 10px;">닫기</button>
-      </form>
-    </div>
+      </div>
+    </header>
 
-    <!-- Footer for Inquiry link -->
-    <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
-      <button id="openInquiry" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; text-decoration: underline; font-size: 0.8rem;">제휴 문의하기</button>
-    </div>
+    <main class="content">
+      <section id="homeSection" class="section">
+        <div class="welcome-msg">
+          <h2>안녕하세요, <span id="userName">학습자</span>님! 👋</h2>
+          <p>오늘의 학습 목표까지 <strong><span id="remainingXp">20</span> XP</strong> 남았어요.</p>
+        </div>
+
+        <div class="main-card primary-action" id="startTodayLesson">
+          <div class="card-content">
+            <span class="tag">TODAY'S PICK</span>
+            <h3>오늘의 필수 표현 학습</h3>
+            <p>실제 원어민들이 매일 쓰는 3가지 문장</p>
+          </div>
+          <div class="card-icon">
+            <i data-lucide="play-circle"></i>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="mini-card">
+            <h4>학습 리포트</h4>
+            <div class="progress-bar">
+              <div class="progress-fill" id="dailyProgressBar" style="width: 0%;"></div>
+            </div>
+            <p class="sub-text">오늘 목표 <span id="dailyProgressText">0/10</span> 단어</p>
+          </div>
+          <div class="mini-card">
+            <h4>스피킹 챌린지</h4>
+            <i data-lucide="mic" class="accent-icon"></i>
+            <p class="sub-text">아직 완료 전</p>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h3>카테고리별 탐색</h3>
+          <button class="text-btn">전체보기</button>
+        </div>
+        <div class="category-scroll">
+          <div class="cat-item" data-category="daily">🏠 일상</div>
+          <div class="cat-item" data-category="business">💼 업무</div>
+          <div class="cat-item" data-category="travel">✈️ 여행</div>
+          <div class="cat-item" data-category="dating">❤️ 연애</div>
+          <div class="cat-item" data-category="slang">🔥 슬랭</div>
+        </div>
+      </section>
+
+      <section id="librarySection" class="section" style="display: none;">
+        <h2>학습 라이브러리</h2>
+        <div id="categoryGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <!-- Categories will be dynamic -->
+        </div>
+      </section>
+
+      <!-- Practice Section (Entry) -->
+      <section id="practiceSection" class="section" style="display: none;">
+        <div class="welcome-msg">
+          <h2>연습 모드 🎯</h2>
+          <p>퀴즈로 실력을 확인하고 추가 XP를 획득하세요.</p>
+        </div>
+        
+        <div class="main-card primary-action" id="startQuizBtn" style="background: #ff9600; box-shadow: 0 6px 0 #cc7800;">
+          <div class="card-content">
+            <span class="tag" style="background: rgba(255,255,255,0.2)">DAILY CHALLENGE</span>
+            <h3>오늘의 단어 퀴즈</h3>
+            <p>5문제를 맞히고 50 XP 보너스 받기</p>
+          </div>
+          <div class="card-icon"><i data-lucide="award"></i></div>
+        </div>
+
+        <div class="mini-card" style="width: 100%; margin-top: 20px;">
+          <h4>최근 퀴즈 성적</h4>
+          <p class="sub-text">아직 기록이 없습니다. 첫 퀴즈를 시작해보세요!</p>
+        </div>
+      </section>
+
+      <!-- Profile Section -->
+      <section id="profileSection" class="section" style="display: none;">
+        <div class="profile-header">
+          <div class="avatar-circle">
+            <span id="profileLevelIcon">🌱</span>
+          </div>
+          <h2 id="profileName">학습자님</h2>
+          <p id="profileLevelTitle" class="level-text">입문자 (Level 1)</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <i data-lucide="zap" style="color: #3b82f6;"></i>
+            <div class="stat-info">
+              <span class="stat-value" id="statTotalXp">0</span>
+              <span class="stat-label">누적 XP</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <i data-lucide="flame" style="color: #ff9600;"></i>
+            <div class="stat-info">
+              <span class="stat-value" id="statStreak">0</span>
+              <span class="stat-label">스트릭</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <i data-lucide="award" style="color: #58cc02;"></i>
+            <div class="stat-info">
+              <span class="stat-value" id="statLevel">1</span>
+              <span class="stat-label">현재 레벨</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>계정 설정</h3>
+          <div class="settings-item" id="editNameBtn">
+            <div class="item-left">
+              <i data-lucide="user-cog"></i>
+              <span>이름 변경</span>
+            </div>
+            <i data-lucide="chevron-right" class="chevron"></i>
+          </div>
+          <div class="settings-item">
+            <div class="item-left">
+              <i data-lucide="bell"></i>
+              <span>학습 알림 설정</span>
+            </div>
+            <div class="toggle-mock"></div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>앱 정보</h3>
+          <div class="settings-item">
+            <div class="item-left">
+              <i data-lucide="help-circle"></i>
+              <span>도움말 및 지원</span>
+            </div>
+            <i data-lucide="external-link" class="chevron"></i>
+          </div>
+          <div class="settings-item danger" id="resetProgressBtn">
+            <div class="item-left">
+              <i data-lucide="trash-2"></i>
+              <span>학습 데이터 초기화</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz Gameplay Section -->
+      <section id="quizSection" class="section" style="display: none;">
+        <div class="learning-header">
+          <button id="closeQuiz" class="icon-btn"><i data-lucide="x"></i></button>
+          <div class="learning-progress">
+            <div class="progress-bar"><div id="quizProgressBar" class="progress-fill" style="width: 0%; background: #ff9600;"></div></div>
+          </div>
+          <span id="quizProgressText">1/5</span>
+        </div>
+
+        <div class="quiz-container">
+          <div class="question-box" style="background: var(--surface); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 25px; border: 2px solid #e5e7eb;">
+            <span class="card-tag" style="position: static; color: #ff9600;">QUIZ</span>
+            <h1 id="quizQuestion" style="font-size: 1.5rem; margin-top: 15px;">"Getting cold feet"의 뜻은?</h1>
+          </div>
+
+          <div id="quizOptions" class="options-grid" style="display: grid; gap: 12px;">
+            <!-- Options will be injected here -->
+          </div>
+        </div>
+
+        <!-- Quiz Feedback Overlay -->
+        <div id="quizFeedback" class="feedback-overlay" style="display: none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 30px 20px; background: white; border-top: 4px solid #22c55e; z-index: 1000; box-shadow: 0 -10px 40px rgba(0,0,0,0.1);">
+          <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <div id="feedbackIconBox" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #dcfce7; color: #22c55e;">
+              <i data-lucide="check-circle" id="fbIcon"></i>
+            </div>
+            <div>
+              <h4 id="feedbackStatus" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #166534;">정답입니다!</h4>
+              <p id="feedbackMeaning" style="margin: 4px 0 0 0; font-size: 0.9rem; color: #166534; font-weight: 600;">Good job!</p>
+            </div>
+          </div>
+          <button id="nextQuizBtn" style="width: 100%; height: 56px; border: none; border-radius: 16px; background: #22c55e; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #166534;">계속하기</button>
+        </div>
+      </section>
+
+      <!-- Learning Section (Card Swipe) -->
+      <section id="learningSection" class="section" style="display: none;">
+        <div class="learning-header">
+          <button id="closeLearning" class="icon-btn"><i data-lucide="x"></i></button>
+          <div class="learning-progress">
+            <div class="progress-bar"><div id="lessonProgressBar" class="progress-fill" style="width: 0%;"></div></div>
+          </div>
+          <span id="lessonProgressText">1/3</span>
+        </div>
+
+        <div class="card-stack-container">
+          <div id="activeCard" class="swipe-card">
+            <div class="card-front">
+              <span class="card-tag">EXPRESSION</span>
+              <h1 id="cardWord">Getting cold feet</h1>
+              <div class="audio-btn" id="playAudio"><i data-lucide="volume-2"></i></div>
+              <p class="card-hint">Tap to see meaning</p>
+            </div>
+            <div class="card-back">
+              <h2 id="cardMeaning">겁이 나다 (무서워지다)</h2>
+              <div class="example-box">
+                <p id="cardSentence">I'm getting cold feet about the wedding.</p>
+                <p id="cardTranslation">결혼식에 대해 좀 겁이 나기 시작했어.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Feedback overlays -->
+          <div class="swipe-feedback like">KNOW</div>
+          <div class="swipe-feedback nope">STUDY</div>
+        </div>
+
+        <div class="learning-controls">
+          <button class="control-btn nope" id="btnNope"><i data-lucide="x"></i></button>
+          <button class="control-btn info" id="btnFlip"><i data-lucide="rotate-cw"></i></button>
+          <button class="control-btn like" id="btnLike"><i data-lucide="check"></i></button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="home">
+        <i data-lucide="home"></i>
+        <span>홈</span>
+      </button>
+      <button class="nav-item" data-target="library">
+        <i data-lucide="book-open"></i>
+        <span>탐색</span>
+      </button>
+      <button class="nav-item" data-target="practice">
+        <i data-lucide="target"></i>
+        <span>연습</span>
+      </button>
+      <button class="nav-item" data-target="profile">
+        <i data-lucide="user"></i>
+        <span>프로필</span>
+      </button>
+    </nav>
   </div>
 
+  <script src="store.js"></script>
+  <script src="gamification.js"></script>
   <script src="main.js"></script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>
