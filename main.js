@@ -225,7 +225,7 @@ const App = (() => {
         try {
           if (!Kakao.isInitialized()) {
             Kakao.init(KAKAO_KEY);
-            console.log('Kakao SDK Initialized Success');
+            console.log('Kakao SDK Initialized: Success');
           }
         } catch (e) {
           console.error('Kakao Init Error:', e);
@@ -533,6 +533,7 @@ const App = (() => {
     switchSection('practice');
   }
 
+  // --- Test Logic ---
   function setupTestEvents() {
     if (elements.startTestBtn) elements.startTestBtn.addEventListener('click', startTest);
     if (elements.closeTest) elements.closeTest.addEventListener('click', () => switchSection('practice'));
@@ -591,11 +592,10 @@ const App = (() => {
       const user = Store.getUser();
       const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
-      // Clean URL: Use the EXACT origin provided by the user
-      const baseAppUrl = window.location.origin + '/'; 
-      const challengeUrl = `${baseAppUrl}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
+      // Force literal domain string to ensure absolute match with Kakao Console
+      const challengeUrl = `https://wordlearning-6ae.pages.dev/?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
 
-      console.log('Sending Kakao Share with URL:', challengeUrl);
+      console.log('Sending Kakao Share URL:', challengeUrl);
 
       Kakao.Share.sendDefault({
         objectType: 'feed',
@@ -619,8 +619,8 @@ const App = (() => {
         ],
       });
     } catch (e) {
-      console.error('Kakao Share Error:', e);
-      alert('공유 시도 중 오류가 발생했습니다.');
+      console.error('Kakao Share Exception:', e);
+      alert('공유 시도 중 오류가 발생했습니다. 브라우저 콘솔을 확인해 주세요.');
     }
   }
 
