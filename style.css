@@ -47,6 +47,40 @@ body {
   z-index: 10;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-profile-btn {
+  height: 36px;
+  min-width: 36px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.header-profile-btn.is-guest {
+  padding: 0 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+}
+
+.header-profile-btn:active {
+  transform: scale(0.9);
+}
+
 .level-badge {
   display: flex;
   align-items: center;

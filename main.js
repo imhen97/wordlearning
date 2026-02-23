@@ -18,6 +18,8 @@ const App = (() => {
     homeCategories: document.querySelectorAll('.cat-item'),
     appHeader: document.querySelector('.header'),
     bottomNav: document.querySelector('.bottom-nav'),
+    headerProfileBtn: document.getElementById('headerProfileBtn'),
+    headerUserIcon: document.getElementById('headerUserIcon'),
     
     // Auth Elements
     loginSection: document.getElementById('loginSection'),
@@ -176,6 +178,13 @@ const App = (() => {
     initAuthSDKs();
     setupAuthEvents();
     setupNavigation();
+    if (elements.headerProfileBtn) {
+      elements.headerProfileBtn.addEventListener('click', () => {
+        const user = Store.getUser();
+        if (user.authType === 'guest') showLogin();
+        else switchSection('profile');
+      });
+    }
     setupLessonEvents();
     setupQuizEvents();
     setupProfileEvents();
@@ -265,6 +274,14 @@ const App = (() => {
     if (elements.userLevelIcon) elements.userLevelIcon.textContent = levelInfo.current.icon;
     if (elements.userLevelTitle) elements.userLevelTitle.textContent = levelInfo.current.title;
     if (elements.userName) elements.userName.textContent = user.name;
+    
+    // Header Profile Button Update
+    if (elements.headerProfileBtn && elements.headerUserIcon) {
+      const isGuest = user.authType === 'guest';
+      elements.headerProfileBtn.classList.toggle('is-guest', isGuest);
+      elements.headerUserIcon.textContent = isGuest ? '로그인' : levelInfo.current.icon;
+    }
+
     if (elements.remainingXp) elements.remainingXp.textContent = Math.max(0, daily.goal - daily.current);
     if (elements.dailyProgressBar) elements.dailyProgressBar.style.width = `${daily.pct}%`;
     if (elements.dailyProgressText) elements.dailyProgressText.textContent = `${daily.cards}/${daily.goalCards}`;
