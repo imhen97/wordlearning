@@ -133,9 +133,72 @@
           <div class="card-icon"><i data-lucide="line-chart"></i></div>
         </div>
 
+        <!-- Battle Card -->
+        <div class="main-card primary-action" id="startBattleBtn" style="background: #ef4444; box-shadow: 0 6px 0 #b91c1c; margin-top: 15px;">
+          <div class="card-content">
+            <span class="tag" style="background: rgba(255,255,255,0.2)">PVP BATTLE</span>
+            <h3>1:1 XP 뺏기 배틀</h3>
+            <p>상대를 이기고 50 XP를 뺏어오세요!</p>
+          </div>
+          <div class="card-icon"><i data-lucide="swords"></i></div>
+        </div>
+
         <div class="mini-card" style="width: 100%; margin-top: 20px;">
           <h4>최근 퀴즈 성적</h4>
           <p class="sub-text">아직 기록이 없습니다. 첫 퀴즈를 시작해보세요!</p>
+        </div>
+      </section>
+
+      <!-- Battle Section -->
+      <section id="battleSection" class="section" style="display: none;">
+        <!-- Matchmaking/VS Screen -->
+        <div id="battleLobby" style="text-align: center; padding-top: 40px;">
+          <h2 style="margin-bottom: 40px;">상대 찾는 중...</h2>
+          <div class="vs-container">
+            <div class="player-avatar me">
+              <span id="myBattleAvatar">🌱</span>
+              <p id="myBattleName">나</p>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="player-avatar opponent">
+              <span id="oppBattleAvatar">❓</span>
+              <p id="oppBattleName">???</p>
+            </div>
+          </div>
+          <div id="bettingInfo" style="margin-top: 40px; font-weight: 700; color: #ef4444;">
+            <i data-lucide="zap" style="width: 16px; display: inline-block;"></i> 배팅: 50 XP
+          </div>
+        </div>
+
+        <!-- Battle Gameplay -->
+        <div id="battleGame" style="display: none;">
+          <div class="battle-header">
+            <div class="battle-score me">
+              <span id="myScore">0</span>
+            </div>
+            <div class="battle-timer">
+              <div class="timer-bar"><div id="battleTimerBar" style="width: 100%;"></div></div>
+            </div>
+            <div class="battle-score opponent">
+              <span id="oppScore">0</span>
+            </div>
+          </div>
+          
+          <div class="quiz-container" style="margin-top: 20px;">
+            <div class="question-box" style="border-color: #ef4444;">
+              <h1 id="battleQuestion" style="font-size: 1.3rem;">Question</h1>
+            </div>
+            <div id="battleOptions" class="options-grid"></div>
+          </div>
+        </div>
+
+        <!-- Battle Result -->
+        <div id="battleResult" style="display: none; text-align: center; padding-top: 50px;">
+          <h1 id="battleResultTitle" style="font-size: 3rem; margin-bottom: 10px;">WIN!</h1>
+          <div id="battleReward" style="font-size: 1.5rem; font-weight: 800; color: #ff9600; margin-bottom: 40px;">
+            +50 XP
+          </div>
+          <button id="closeBattle" class="btn-primary" style="width: 100%;">돌아가기</button>
         </div>
       </section>
 

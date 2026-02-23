@@ -1,5 +1,5 @@
 :root {
-  --primary: #ff9600; /* engz 메인 오렌지 */
+  --primary: #ff9600;
   --primary-dark: #e68a00;
   --bg-color: #ffffff;
   --surface: #f7f7f7;
@@ -757,4 +757,88 @@ body {
   color: #afafaf;
   text-align: center;
   line-height: 1.4;
+}
+
+/* Battle Mode Styles */
+.vs-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 40px 0;
+}
+
+.player-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-avatar span {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  border: 4px solid #e5e7eb;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.player-avatar p {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.player-avatar.me span { border-color: #3b82f6; }
+.player-avatar.opponent span { border-color: #ef4444; }
+
+.vs-text {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ef4444;
+  font-style: italic;
+}
+
+.battle-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.battle-score {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: white;
+}
+
+.battle-score.me { background: #3b82f6; }
+.battle-score.opponent { background: #ef4444; }
+
+.battle-timer {
+  flex: 1;
+}
+
+.timer-bar {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#battleTimerBar {
+  height: 100%;
+  background: #ef4444;
+  transition: width 0.1s linear;
 }

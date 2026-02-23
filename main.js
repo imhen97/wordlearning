@@ -81,7 +81,24 @@ const App = (() => {
     testScore: document.getElementById('testScore'),
     testTime: document.getElementById('testTime'),
     testStatusText: document.getElementById('testStatusText'),
-    backToPractice: document.getElementById('backToPractice')
+    backToPractice: document.getElementById('backToPractice'),
+
+    // Battle Elements
+    startBattleBtn: document.getElementById('startBattleBtn'),
+    battleSection: document.getElementById('battleSection'),
+    battleLobby: document.getElementById('battleLobby'),
+    battleGame: document.getElementById('battleGame'),
+    battleResult: document.getElementById('battleResult'),
+    myBattleName: document.getElementById('myBattleName'),
+    oppBattleName: document.getElementById('oppBattleName'),
+    myScore: document.getElementById('myScore'),
+    oppScore: document.getElementById('oppScore'),
+    battleTimerBar: document.getElementById('battleTimerBar'),
+    battleQuestion: document.getElementById('battleQuestion'),
+    battleOptions: document.getElementById('battleOptions'),
+    battleResultTitle: document.getElementById('battleResultTitle'),
+    battleReward: document.getElementById('battleReward'),
+    closeBattle: document.getElementById('closeBattle')
   };
 
   const LESSON_DATA = {
@@ -146,9 +163,13 @@ const App = (() => {
     { q: 'The term "Piece of cake" means:', options: ['Very difficult', 'Delicious', 'Very easy', 'A small slice'], correct: 'Very easy' }
   ];
 
+  // Battle Opponents
+  const OPPONENTS = ['John', 'Emma', 'David', 'Sarah', 'Michael', 'Kate', 'Alex', 'Olivia'];
+
   let lessonState = { currentIndex: 0, isFlipped: false, currentList: [] };
   let quizState = { currentIndex: 0, questions: [], correctCount: 0 };
   let testState = { currentIndex: 0, score: 0, startTime: null };
+  let battleState = { currentIndex: 0, myScore: 0, oppScore: 0, timer: null, timeLeft: 100 };
 
   function init() {
     initAuthSDKs();
@@ -158,6 +179,7 @@ const App = (() => {
     setupQuizEvents();
     setupProfileEvents();
     setupTestEvents();
+    setupBattleEvents();
     renderLibrary();
     
     const user = Store.getUser();
@@ -167,11 +189,9 @@ const App = (() => {
 
   // --- Auth SDK ---
   function initAuthSDKs() {
-    // Kakao Init
     if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
       Kakao.init('b576096ad9422df403f0cba82cbd51e7'); 
     }
-    // Google Init (GIS)
     window.handleGoogleResponse = (response) => {
       const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
       onLoginSuccess(payload.name, 'google');
@@ -226,7 +246,7 @@ const App = (() => {
   }
 
   function switchSection(target) {
-    const isSpecial = ['learning', 'quiz', 'test', 'result', 'login'].includes(target);
+    const isSpecial = ['learning', 'quiz', 'test', 'result', 'login', 'battle'].includes(target);
     if (elements.bottomNav) elements.bottomNav.style.display = isSpecial ? 'none' : 'flex';
     if (elements.appHeader) elements.appHeader.style.display = target === 'login' ? 'none' : 'flex';
     elements.navItems.forEach(nav => nav.classList.toggle('active', nav.getAttribute('data-target') === target));
@@ -433,6 +453,134 @@ const App = (() => {
     elements.testTime.textContent = `${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}`;
     const user = Store.getUser(); user.currentRank = rank; user.lastTestDate = new Date().toISOString();
     Store.setUser(user); updateUI(); switchSection('result');
+  }
+
+  // --- Battle Logic ---
+  function setupBattleEvents() {
+    if (elements.startBattleBtn) elements.startBattleBtn.addEventListener('click', tryStartBattle);
+    if (elements.closeBattle) elements.closeBattle.addEventListener('click', () => switchSection('practice'));
+  }
+
+  function tryStartBattle() {
+    const user = Store.getUser();
+    if ((user.xp || 0) < 50) {
+      alert('XP가 부족합니다! 배틀에 참여하려면 최소 50 XP가 필요합니다.');
+      return;
+    }
+    startMatchmaking();
+  }
+
+  function startMatchmaking() {
+    switchSection('battle');
+    elements.battleLobby.style.display = 'block';
+    elements.battleGame.style.display = 'none';
+    elements.battleResult.style.display = 'none';
+    
+    elements.myBattleName.textContent = Store.getUser().name;
+    elements.oppBattleName.textContent = '찾는 중...';
+
+    // Simulate Matchmaking (2 seconds)
+    setTimeout(() => {
+      const randomOpp = OPPONENTS[Math.floor(Math.random() * OPPONENTS.length)];
+      elements.oppBattleName.textContent = randomOpp;
+      setTimeout(() => startBattleRound(), 1000);
+    }, 2000);
+  }
+
+  function startBattleRound() {
+    elements.battleLobby.style.display = 'none';
+    elements.battleGame.style.display = 'block';
+    
+    battleState = { currentIndex: 0, myScore: 0, oppScore: 0, timeLeft: 100 };
+    updateBattleScore();
+    nextBattleQuestion();
+  }
+
+  function nextBattleQuestion() {
+    if (battleState.currentIndex >= 5) {
+      endBattle();
+      return;
+    }
+
+    const q = TEST_QUESTIONS[battleState.currentIndex % TEST_QUESTIONS.length];
+    elements.battleQuestion.textContent = q.q;
+    elements.battleOptions.innerHTML = '';
+    
+    battleState.timeLeft = 100;
+    runBattleTimer();
+
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => handleBattleAnswer(opt, q.correct));
+      elements.battleOptions.appendChild(btn);
+    });
+  }
+
+  function runBattleTimer() {
+    clearInterval(battleState.timer);
+    battleState.timer = setInterval(() => {
+      battleState.timeLeft -= 2;
+      elements.battleTimerBar.style.width = `${battleState.timeLeft}%`;
+      
+      // Simulate Opponent Answer
+      if (Math.random() > 0.95) {
+        const isCorrect = Math.random() > 0.4;
+        if (isCorrect) battleState.oppScore++;
+        updateBattleScore();
+      }
+
+      if (battleState.timeLeft <= 0) {
+        clearInterval(battleState.timer);
+        battleState.currentIndex++;
+        nextBattleQuestion();
+      }
+    }, 100);
+  }
+
+  function handleBattleAnswer(selected, correct) {
+    clearInterval(battleState.timer);
+    if (selected === correct) battleState.myScore++;
+    updateBattleScore();
+    setTimeout(() => {
+      battleState.currentIndex++;
+      nextBattleQuestion();
+    }, 500);
+  }
+
+  function updateBattleScore() {
+    elements.myScore.textContent = battleState.myScore;
+    elements.oppScore.textContent = battleState.oppScore;
+  }
+
+  function endBattle() {
+    elements.battleGame.style.display = 'none';
+    elements.battleResult.style.display = 'block';
+    
+    const isWin = battleState.myScore > battleState.oppScore;
+    const isDraw = battleState.myScore === battleState.oppScore;
+    
+    let xpChange = 0;
+    if (isWin) {
+      xpChange = 50;
+      elements.battleResultTitle.textContent = 'WIN!';
+      elements.battleResultTitle.style.color = '#22c55e';
+      elements.battleReward.textContent = '+50 XP (상대방 XP 획득!)';
+    } else if (isDraw) {
+      xpChange = 0;
+      elements.battleResultTitle.textContent = 'DRAW';
+      elements.battleResultTitle.style.color = '#7e22ce';
+      elements.battleReward.textContent = '0 XP (배팅 금액 반환)';
+    } else {
+      xpChange = -50;
+      elements.battleResultTitle.textContent = 'LOSE...';
+      elements.battleResultTitle.style.color = '#ef4444';
+      elements.battleReward.textContent = '-50 XP (배팅 금액 상실)';
+    }
+
+    Gamification.awardXP('BATTLE', xpChange);
+    updateUI();
   }
 
   function setupProfileEvents() {
