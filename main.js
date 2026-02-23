@@ -34,7 +34,20 @@ const App = (() => {
     genderBtns: document.querySelectorAll('.btn-gender'),
     saveOnboardingBtn: document.getElementById('saveOnboardingBtn'),
 
-    // Learning Elements
+    // Avatar Display Elements
+    profileAvatarHat: document.getElementById('profileAvatarHat'),
+    profileAvatarAura: document.getElementById('profileAvatarAura'),
+    profileAvatarBg: document.getElementById('profileAvatarBg'),
+    shopPreviewHat: document.getElementById('shopPreviewHat'),
+    shopPreviewAura: document.getElementById('shopPreviewAura'),
+    shopPreviewBg: document.getElementById('shopPreviewBg'),
+
+    // Shop Elements
+    shopGrid: document.getElementById('shopGrid'),
+    inventoryList: document.getElementById('inventoryList'),
+    shopTabs: document.querySelectorAll('.shop-tab'),
+
+    // Learning & Quiz (Same as before)
     learningSection: document.getElementById('learningSection'),
     closeLearning: document.getElementById('closeLearning'),
     activeCard: document.getElementById('activeCard'),
@@ -49,8 +62,6 @@ const App = (() => {
     btnFlip: document.getElementById('btnFlip'),
     feedbackLike: document.querySelector('.swipe-feedback.like'),
     feedbackNope: document.querySelector('.swipe-feedback.nope'),
-
-    // Quiz Elements
     startQuizBtn: document.getElementById('startQuizBtn'),
     quizSection: document.getElementById('quizSection'),
     closeQuiz: document.getElementById('closeQuiz'),
@@ -108,11 +119,7 @@ const App = (() => {
     battleResultTitle: document.getElementById('battleResultTitle'),
     battleReward: document.getElementById('battleReward'),
     closeBattle: document.getElementById('closeBattle'),
-    shareBattleBtn: document.getElementById('shareBattleBtn'),
-
-    // Shop Elements
-    shopGrid: document.getElementById('shopGrid'),
-    inventoryList: document.getElementById('inventoryList')
+    shareBattleBtn: document.getElementById('shareBattleBtn')
   };
 
   const LESSON_DATA = {
@@ -155,9 +162,23 @@ const App = (() => {
   };
 
   const SHOP_ITEMS = [
-    { id: 'streak_shield', name: '스트릭 쉴드', desc: '하루 학습을 쉬어도 스트릭을 보호합니다.', price: 200, icon: '🛡️' },
-    { id: 'double_booster', name: '코인 부스터', desc: '다음 학습 완료 시 코인을 2배로 받습니다.', price: 150, icon: '⚡' },
-    { id: 'random_icon', name: '프로필 아이콘', desc: '랜덤하고 특별한 프로필 아이콘으로 변경합니다.', price: 300, icon: '🎨' }
+    // HATS
+    { id: 'hat_crown', category: 'hat', name: '황금 왕관', price: 500, value: '👑' },
+    { id: 'hat_cap', category: 'hat', name: '블루 캡', price: 100, value: '🧢' },
+    { id: 'hat_headset', category: 'hat', name: '게이밍 헤드셋', price: 250, value: '🎧' },
+    { id: 'hat_sunglasses', category: 'hat', name: '힙합 선글라스', price: 150, value: '🕶️' },
+    { id: 'hat_devil', category: 'hat', name: '악마 뿔', price: 300, value: '😈' },
+    
+    // AURAS
+    { id: 'aura_fire', category: 'aura', name: '열정의 불꽃', price: 400, value: '🔥' },
+    { id: 'aura_sparkle', category: 'aura', name: '반짝이는 별', price: 200, value: '✨' },
+    { id: 'aura_wings', category: 'aura', name: '천사의 날개', price: 600, value: '🕊️' },
+    { id: 'aura_rainbow', category: 'aura', name: '무지개 오라', price: 350, value: '🌈' },
+
+    // BACKGROUNDS
+    { id: 'bg_city', category: 'bg', name: '잠들지 않는 도시', price: 300, value: 'linear-gradient(to bottom, #1e293b, #334155)' },
+    { id: 'bg_forest', category: 'bg', name: '고요한 숲', price: 200, value: 'linear-gradient(to bottom, #065f46, #064e3b)' },
+    { id: 'bg_space', category: 'bg', name: '신비로운 우주', price: 500, value: 'radial-gradient(circle, #4c1d95, #1e1b4b)' }
   ];
 
   const RANK_DATA = {
@@ -191,6 +212,7 @@ const App = (() => {
   let testState = { currentIndex: 0, score: 0, startTime: null };
   let battleState = { currentIndex: 0, myScore: 0, oppScore: 0, timer: null, timeLeft: 100 };
   let onboardingData = { gender: '' };
+  let currentShopCategory = 'hat';
 
   function init() {
     initAuthSDKs();
@@ -209,8 +231,8 @@ const App = (() => {
     setupProfileEvents();
     setupTestEvents();
     setupBattleEvents();
+    setupShopEvents();
     renderLibrary();
-    renderShop();
     
     // Check for Deep Link (Challenge)
     const urlParams = new URLSearchParams(window.location.search);
@@ -230,7 +252,7 @@ const App = (() => {
     const KAKAO_KEY = '8330b9a35b2856398ca6679bc44c23ae';
     const GOOGLE_CLIENT_ID = '788651995754-gtaeksuj0ndhmtc76mjsccfg6u2c67sr.apps.googleusercontent.com';
 
-    // Kakao Init (v2)
+    // Kakao Init (v1)
     const tryInitKakao = (retries = 0) => {
       if (typeof Kakao !== 'undefined') {
         try {
@@ -298,6 +320,8 @@ const App = (() => {
         user.name = name;
         user.gender = onboardingData.gender;
         user.onboarded = true;
+        user.equipped = { hat: null, aura: null, bg: null };
+        user.inventory = [];
         Store.setUser(user);
 
         alert('프로필 설정 완료! 실력 진단 테스트를 시작합니다.');
@@ -378,6 +402,7 @@ const App = (() => {
     elements.sections.forEach(section => { if (section) section.style.display = section.id === `${target}Section` ? 'block' : 'none'; });
     
     if (target === 'shop') renderShop();
+    if (target === 'profile') updateAvatarDisplay('profile');
   }
 
   // --- UI Update ---
@@ -412,6 +437,8 @@ const App = (() => {
       const rank = user.currentRank || 'Unranked';
       elements.testStatusText.textContent = rank === 'Unranked' ? '내 등급을 확인해보세요!' : `현재 등급: ${rank} (${RANK_DATA[rank].title})`;
     }
+
+    updateAvatarDisplay('profile');
   }
 
   // --- Shared Setup ---
@@ -454,17 +481,7 @@ const App = (() => {
     elements.activeCard.style.opacity = '0';
     setTimeout(() => {
       if (feedback) feedback.style.opacity = '0';
-      
-      const user = Store.getUser();
-      let gain = Gamification.COIN_EVENTS.CARD_SEEN;
-      if (user.inventory?.some(i => i === 'double_booster')) {
-        gain *= 2;
-        // Use booster
-        user.inventory = user.inventory.filter(i => i !== 'double_booster');
-        Store.setUser(user);
-      }
-      
-      Gamification.awardCoins('CARD_SEEN', gain);
+      Gamification.awardCoins('CARD_SEEN');
       lessonState.currentIndex++;
       if (lessonState.currentIndex < lessonState.currentList.length) {
         elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = 'none';
@@ -556,7 +573,6 @@ const App = (() => {
     switchSection('practice');
   }
 
-  // --- Test Logic ---
   function setupTestEvents() {
     if (elements.startTestBtn) elements.startTestBtn.addEventListener('click', startTest);
     if (elements.closeTest) elements.closeTest.addEventListener('click', () => switchSection('practice'));
@@ -734,62 +750,68 @@ const App = (() => {
     const user = Store.getUser(); user.coins = (user.coins || 0) + coinChange; Store.setUser(user); updateUI();
   }
 
-  // --- Shop Logic ---
+  // --- Shop & Avatar Logic ---
+  function setupShopEvents() {
+    elements.shopTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        elements.shopTabs.forEach(t => tab.classList.remove('active'));
+        tab.classList.add('active');
+        currentShopCategory = tab.getAttribute('data-category');
+        renderShop();
+      });
+    });
+  }
+
   function renderShop() {
     if (!elements.shopGrid) return;
     const user = Store.getUser();
     elements.shopGrid.innerHTML = '';
     
-    SHOP_ITEMS.forEach(item => {
+    const categoryItems = SHOP_ITEMS.filter(item => item.category === currentShopCategory);
+    
+    categoryItems.forEach(item => {
+      const isOwned = user.inventory?.includes(item.id);
       const card = document.createElement('div');
-      card.className = 'mini-card';
-      card.style.flexDirection = 'row';
-      card.style.justifyContent = 'space-between';
-      card.style.alignItems = 'center';
-      card.style.gap = '15px';
+      card.className = 'shop-item-card';
       
       card.innerHTML = `
-        <div style="font-size: 2rem;">${item.icon}</div>
-        <div style="flex: 1;">
-          <h4 style="margin: 0; color: var(--text-main);">${item.name}</h4>
-          <p class="sub-text">${item.desc}</p>
-        </div>
-        <button class="btn-primary buy-btn" data-id="${item.id}" style="height: 40px; padding: 0 15px; font-size: 0.85rem; min-width: 80px;">
-          ${item.price} 💰
+        <div class="item-icon-circle">${item.category === 'bg' ? '🖼️' : item.value}</div>
+        <h4 style="margin: 0; font-size: 0.9rem;">${item.name}</h4>
+        <button class="btn-primary buy-btn" style="height: 36px; font-size: 0.8rem; box-shadow: none; ${isOwned ? 'background:#94a3b8;' : ''}">
+          ${isOwned ? '보유중' : `${item.price} 💰`}
         </button>
       `;
       
-      const buyBtn = card.querySelector('.buy-btn');
-      if (user.coins < item.price) {
-        buyBtn.style.background = '#d1d5db';
-        buyBtn.style.boxShadow = 'none';
-        buyBtn.disabled = true;
+      if (!isOwned) {
+        card.querySelector('.buy-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          buyItem(item);
+        });
       }
       
-      buyBtn.addEventListener('click', () => buyItem(item));
+      // Preview on Click
+      card.addEventListener('click', () => previewItem(item));
       elements.shopGrid.appendChild(card);
     });
 
     renderInventory();
+    updateAvatarDisplay('shop');
+  }
+
+  function previewItem(item) {
+    if (item.category === 'hat') elements.shopPreviewHat.textContent = item.value;
+    if (item.category === 'aura') elements.shopPreviewAura.textContent = item.value;
+    if (item.category === 'bg') elements.shopPreviewBg.style.background = item.value;
   }
 
   function buyItem(item) {
     const user = Store.getUser();
     if (user.coins < item.price) return alert('코인이 부족합니다!');
     
-    if (confirm(`'${item.name}'을(를) ${item.price} 코인에 구매하시겠습니까?`)) {
+    if (confirm(`'${item.name}'을(를) 구매하시겠습니까?`)) {
       user.coins -= item.price;
       if (!user.inventory) user.inventory = [];
-      
-      if (item.id === 'random_icon') {
-        const icons = ['🔥', '⭐', '💎', '🏆', '👑', '🦁', '🦉', '🚀'];
-        user.specialIcon = icons[Math.floor(Math.random() * icons.icons.length)];
-        alert(`특별한 아이콘 '${user.specialIcon}'(으)로 변경되었습니다!`);
-      } else {
-        user.inventory.push(item.id);
-        alert(`'${item.name}' 구매 완료! 인벤토리에 추가되었습니다.`);
-      }
-      
+      user.inventory.push(item.id);
       Store.setUser(user);
       updateUI();
       renderShop();
@@ -802,7 +824,7 @@ const App = (() => {
     const inventory = user.inventory || [];
     
     if (inventory.length === 0) {
-      elements.inventoryList.innerHTML = '<p class="sub-text">보유 중인 아이템이 없습니다.</p>';
+      elements.inventoryList.innerHTML = '<p class="sub-text">아이템을 구매하고 착용해 보세요!</p>';
       return;
     }
     
@@ -810,10 +832,50 @@ const App = (() => {
     inventory.forEach(itemId => {
       const item = SHOP_ITEMS.find(i => i.id === itemId);
       if (item) {
-        const badge = document.createElement('div');
-        badge.style.cssText = 'background: white; border: 2px solid #e5e7eb; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 700;';
-        badge.textContent = `${item.icon} ${item.name}`;
-        elements.inventoryList.appendChild(badge);
+        const isEquipped = user.equipped && user.equipped[item.category] === item.id;
+        const div = document.createElement('div');
+        div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
+        div.innerHTML = `<span>${item.category === 'bg' ? '🖼️' : item.value}</span> ${item.name}`;
+        div.addEventListener('click', () => toggleEquip(item));
+        elements.inventoryList.appendChild(div);
+      }
+    });
+  }
+
+  function toggleEquip(item) {
+    const user = Store.getUser();
+    if (!user.equipped) user.equipped = { hat: null, aura: null, bg: null };
+    
+    if (user.equipped[item.category] === item.id) {
+      user.equipped[item.category] = null; // Unequip
+    } else {
+      user.equipped[item.category] = item.id; // Equip
+    }
+    
+    Store.setUser(user);
+    renderShop();
+    updateAvatarDisplay('profile');
+  }
+
+  function updateAvatarDisplay(type) {
+    const user = Store.getUser();
+    const eq = user.equipped || {};
+    
+    const targets = type === 'profile' ? 
+      { hat: elements.profileAvatarHat, aura: elements.profileAvatarAura, bg: elements.profileAvatarBg } :
+      { hat: elements.shopPreviewHat, aura: elements.shopPreviewAura, bg: elements.shopPreviewBg };
+
+    if (!targets.hat) return;
+
+    // Apply equipped items to display
+    ['hat', 'aura', 'bg'].forEach(cat => {
+      const itemId = eq[cat];
+      const item = SHOP_ITEMS.find(i => i.id === itemId);
+      
+      if (cat === 'bg') {
+        targets.bg.style.background = item ? item.value : 'transparent';
+      } else {
+        targets[cat].textContent = item ? item.value : '';
       }
     });
   }

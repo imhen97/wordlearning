@@ -286,8 +286,12 @@
       <!-- Profile Section -->
       <section id="profileSection" class="section" style="display: none;">
         <div class="profile-header">
-          <div class="avatar-circle">
-            <span id="profileLevelIcon">🌱</span>
+          <!-- Virtual Character Avatar -->
+          <div class="avatar-container" id="profileAvatarContainer">
+            <div class="avatar-bg" id="profileAvatarBg"></div>
+            <div class="avatar-aura" id="profileAvatarAura"></div>
+            <div class="avatar-body">🐱</div>
+            <div class="avatar-hat" id="profileAvatarHat"></div>
           </div>
           <h2 id="profileName">학습자님</h2>
           <p id="profileLevelTitle" class="level-text">입문자 (Level 1)</p>
@@ -352,8 +356,47 @@
         </div>
       </section>
 
+      <!-- Shop Section -->
+      <section id="shopSection" class="section" style="display: none;">
+        <div class="shop-header">
+          <div class="welcome-msg">
+            <h2>아바타 상점 🛍️</h2>
+            <p>코인으로 캐릭터를 멋지게 꾸며보세요!</p>
+          </div>
+          <!-- Avatar Preview -->
+          <div class="avatar-preview-box">
+            <div class="avatar-container" id="shopAvatarPreview">
+              <div class="avatar-bg" id="shopPreviewBg"></div>
+              <div class="avatar-aura" id="shopPreviewAura"></div>
+              <div class="avatar-body">🐱</div>
+              <div class="avatar-hat" id="shopPreviewHat"></div>
+            </div>
+            <p class="sub-text" style="margin-top: 10px; font-weight: 800;">PREVIEW</p>
+          </div>
+        </div>
+
+        <!-- Shop Categories -->
+        <div class="shop-tabs">
+          <button class="shop-tab active" data-category="hat">머리</button>
+          <button class="shop-tab" data-category="aura">효과</button>
+          <button class="shop-tab" data-category="bg">배경</button>
+        </div>
+
+        <div id="shopGrid" class="shop-grid">
+          <!-- Avatar items will be dynamic -->
+        </div>
+
+        <div class="mini-card" style="margin-top: 30px; background: #f8fafc;">
+          <h4>내 인벤토리 (보유 아이템)</h4>
+          <div id="inventoryList" class="inventory-grid">
+            <p class="sub-text">아이템을 구매하고 착용해 보세요!</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Quiz Gameplay Section -->
       <section id="quizSection" class="section" style="display: none;">
+        <!-- (Same as before) -->
         <div class="learning-header">
           <button id="closeQuiz" class="icon-btn"><i data-lucide="x"></i></button>
           <div class="learning-progress">
@@ -361,19 +404,13 @@
           </div>
           <span id="quizProgressText">1/5</span>
         </div>
-
         <div class="quiz-container">
           <div class="question-box" style="background: var(--surface); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 25px; border: 2px solid #e5e7eb;">
             <span class="card-tag" style="position: static; color: #ff9600;">QUIZ</span>
-            <h1 id="quizQuestion" style="font-size: 1.5rem; margin-top: 15px;">"Getting cold feet"의 뜻은?</h1>
+            <h1 id="quizQuestion" style="font-size: 1.5rem; margin-top: 15px;">Loading...</h1>
           </div>
-
-          <div id="quizOptions" class="options-grid" style="display: grid; gap: 12px;">
-            <!-- Options will be injected here -->
-          </div>
+          <div id="quizOptions" class="options-grid"></div>
         </div>
-
-        <!-- Quiz Feedback Overlay -->
         <div id="quizFeedback" class="feedback-overlay" style="display: none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 30px 20px; background: white; border-top: 4px solid #22c55e; z-index: 1000; box-shadow: 0 -10px 40px rgba(0,0,0,0.1);">
           <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
             <div id="feedbackIconBox" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #dcfce7; color: #22c55e;">
@@ -397,29 +434,25 @@
           </div>
           <span id="lessonProgressText">1/3</span>
         </div>
-
         <div class="card-stack-container">
           <div id="activeCard" class="swipe-card">
             <div class="card-front">
               <span class="card-tag">EXPRESSION</span>
-              <h1 id="cardWord">Getting cold feet</h1>
+              <h1 id="cardWord">Loading...</h1>
               <div class="audio-btn" id="playAudio"><i data-lucide="volume-2"></i></div>
               <p class="card-hint">Tap to see meaning</p>
             </div>
             <div class="card-back">
-              <h2 id="cardMeaning">겁이 나다 (무서워지다)</h2>
+              <h2 id="cardMeaning">Meaning</h2>
               <div class="example-box">
-                <p id="cardSentence">I'm getting cold feet about the wedding.</p>
-                <p id="cardTranslation">결혼식에 대해 좀 겁이 나기 시작했어.</p>
+                <p id="cardSentence">Sentence</p>
+                <p id="cardTranslation">Translation</p>
               </div>
             </div>
           </div>
-          
-          <!-- Feedback overlays -->
           <div class="swipe-feedback like">KNOW</div>
           <div class="swipe-feedback nope">STUDY</div>
         </div>
-
         <div class="learning-controls">
           <button class="control-btn nope" id="btnNope"><i data-lucide="x"></i></button>
           <button class="control-btn info" id="btnFlip"><i data-lucide="rotate-cw"></i></button>
@@ -450,25 +483,6 @@
         <span>프로필</span>
       </button>
     </nav>
-
-    <!-- Shop Section -->
-    <section id="shopSection" class="section" style="display: none;">
-      <div class="welcome-msg">
-        <h2>코인 상점 🛍️</h2>
-        <p>열심히 모은 코인으로 아이템을 구매하세요.</p>
-      </div>
-
-      <div id="shopGrid" style="display: grid; gap: 15px;">
-        <!-- Items will be dynamic -->
-      </div>
-
-      <div class="mini-card" style="margin-top: 30px; background: #f8fafc;">
-        <h4>내 인벤토리</h4>
-        <div id="inventoryList" style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <p class="sub-text">보유 중인 아이템이 없습니다.</p>
-        </div>
-      </div>
-    </section>
   </div>
 
   <script src="store.js"></script>
