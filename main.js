@@ -222,9 +222,13 @@ const App = (() => {
     // Kakao Init (v2)
     const tryInitKakao = (retries = 0) => {
       if (typeof Kakao !== 'undefined') {
-        if (!Kakao.isInitialized()) {
-          Kakao.init(KAKAO_KEY);
-          console.log('Kakao SDK Initialized');
+        try {
+          if (!Kakao.isInitialized()) {
+            Kakao.init(KAKAO_KEY);
+            console.log('Kakao SDK Initialized Success');
+          }
+        } catch (e) {
+          console.error('Kakao Init Error:', e);
         }
       } else if (retries < 10) {
         setTimeout(() => tryInitKakao(retries + 1), 500);
@@ -292,7 +296,7 @@ const App = (() => {
   }
 
   function loginWithKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다.');
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
     Kakao.Auth.login({
       success: () => {
         Kakao.API.request({
@@ -306,7 +310,7 @@ const App = (() => {
       },
       fail: (err) => {
         console.error('Kakao Login Error:', err);
-        alert('카카오 로그인에 실패했습니다.');
+        alert('카카오 로그인에 실패했습니다. 도메인 설정이나 팝업 차단을 확인해 주세요.');
       }
     });
   }
@@ -581,34 +585,49 @@ const App = (() => {
   }
 
   function shareBattleToKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('Kakao SDK 로딩 중...');
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다. 잠시 후 다시 시도해 주세요.');
     
-    // Generate a unique challenge ID using timestamp + user ID (simple hash)
-    const user = Store.getUser();
-    const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const challengeUrl = `${window.location.origin}${window.location.pathname}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
+    try {
+      const user = Store.getUser();
+      const challengeId = `CH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      // Use clean URL without existing query params to avoid domain mismatch
+      const baseAppUrl = window.location.origin + window.location.pathname;
+      const challengeUrl = `${baseAppUrl}?challenge=${challengeId}&inviter=${encodeURIComponent(user.name)}`;
 
-    Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: `⚔️ ${user.name}님의 결투 신청!`,
-        description: '50 코인을 건 승부가 시작됩니다. 지금 바로 도전하세요!',
-        imageUrl: 'https://imhen97.github.io/wordlearning/logo_orange.png', 
-        link: {
-          mobileWebUrl: challengeUrl,
-          webUrl: challengeUrl,
-        },
-      },
-      buttons: [
-        {
-          title: '도전 수락하기',
+      console.log('Sharing Challenge URL:', challengeUrl);
+
+      Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: `⚔️ ${user.name}님의 결투 신청!`,
+          description: '50 코인을 건 승부가 시작됩니다. 지금 바로 도전하세요!',
+          imageUrl: 'https://imhen97.github.io/wordlearning/logo_orange.png', 
           link: {
             mobileWebUrl: challengeUrl,
             webUrl: challengeUrl,
           },
         },
-      ],
-    });
+        buttons: [
+          {
+            title: '도전 수락하기',
+            link: {
+              mobileWebUrl: challengeUrl,
+              webUrl: challengeUrl,
+            },
+          },
+        ],
+        callback: function() {
+          console.log('Share Success');
+        },
+        fail: function(err) {
+          console.error('Share Fail Callback:', err);
+          alert('공유에 실패했습니다. 도메인 등록 여부를 확인해 주세요.');
+        }
+      });
+    } catch (e) {
+      console.error('Kakao Share Exception:', e);
+      alert('공유 중 오류가 발생했습니다.');
+    }
   }
 
   function handleChallenge(challengeId) {
