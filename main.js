@@ -108,7 +108,11 @@ const App = (() => {
     battleResultTitle: document.getElementById('battleResultTitle'),
     battleReward: document.getElementById('battleReward'),
     closeBattle: document.getElementById('closeBattle'),
-    shareBattleBtn: document.getElementById('shareBattleBtn')
+    shareBattleBtn: document.getElementById('shareBattleBtn'),
+
+    // Shop Elements
+    shopGrid: document.getElementById('shopGrid'),
+    inventoryList: document.getElementById('inventoryList')
   };
 
   const LESSON_DATA = {
@@ -149,6 +153,12 @@ const App = (() => {
       ]
     }
   };
+
+  const SHOP_ITEMS = [
+    { id: 'streak_shield', name: '스트릭 쉴드', desc: '하루 학습을 쉬어도 스트릭을 보호합니다.', price: 200, icon: '🛡️' },
+    { id: 'double_booster', name: '코인 부스터', desc: '다음 학습 완료 시 코인을 2배로 받습니다.', price: 150, icon: '⚡' },
+    { id: 'random_icon', name: '프로필 아이콘', desc: '랜덤하고 특별한 프로필 아이콘으로 변경합니다.', price: 300, icon: '🎨' }
+  ];
 
   const RANK_DATA = {
     'Unranked': { title: '등급 없음', desc: '테스트를 통해 등급을 확인하세요.' },
@@ -200,6 +210,7 @@ const App = (() => {
     setupTestEvents();
     setupBattleEvents();
     renderLibrary();
+    renderShop();
     
     // Check for Deep Link (Challenge)
     const urlParams = new URLSearchParams(window.location.search);
@@ -365,6 +376,8 @@ const App = (() => {
     if (elements.appHeader) elements.appHeader.style.display = (target === 'login' || target === 'onboarding') ? 'none' : 'flex';
     elements.navItems.forEach(nav => nav.classList.toggle('active', nav.getAttribute('data-target') === target));
     elements.sections.forEach(section => { if (section) section.style.display = section.id === `${target}Section` ? 'block' : 'none'; });
+    
+    if (target === 'shop') renderShop();
   }
 
   // --- UI Update ---
@@ -441,7 +454,17 @@ const App = (() => {
     elements.activeCard.style.opacity = '0';
     setTimeout(() => {
       if (feedback) feedback.style.opacity = '0';
-      Gamification.awardCoins('CARD_SEEN');
+      
+      const user = Store.getUser();
+      let gain = Gamification.COIN_EVENTS.CARD_SEEN;
+      if (user.inventory?.some(i => i === 'double_booster')) {
+        gain *= 2;
+        // Use booster
+        user.inventory = user.inventory.filter(i => i !== 'double_booster');
+        Store.setUser(user);
+      }
+      
+      Gamification.awardCoins('CARD_SEEN', gain);
       lessonState.currentIndex++;
       if (lessonState.currentIndex < lessonState.currentList.length) {
         elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = 'none';
@@ -709,6 +732,90 @@ const App = (() => {
     else if (isDraw) { coinChange = 0; elements.battleResultTitle.textContent = 'DRAW'; elements.battleResultTitle.style.color = '#7e22ce'; elements.battleReward.textContent = '0 코인 (배팅 금액 반환)'; }
     else { coinChange = -50; elements.battleResultTitle.textContent = 'LOSE...'; elements.battleResultTitle.style.color = '#ef4444'; elements.battleReward.textContent = '-50 코인 (배팅 금액 상실)'; }
     const user = Store.getUser(); user.coins = (user.coins || 0) + coinChange; Store.setUser(user); updateUI();
+  }
+
+  // --- Shop Logic ---
+  function renderShop() {
+    if (!elements.shopGrid) return;
+    const user = Store.getUser();
+    elements.shopGrid.innerHTML = '';
+    
+    SHOP_ITEMS.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'mini-card';
+      card.style.flexDirection = 'row';
+      card.style.justifyContent = 'space-between';
+      card.style.alignItems = 'center';
+      card.style.gap = '15px';
+      
+      card.innerHTML = `
+        <div style="font-size: 2rem;">${item.icon}</div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0; color: var(--text-main);">${item.name}</h4>
+          <p class="sub-text">${item.desc}</p>
+        </div>
+        <button class="btn-primary buy-btn" data-id="${item.id}" style="height: 40px; padding: 0 15px; font-size: 0.85rem; min-width: 80px;">
+          ${item.price} 💰
+        </button>
+      `;
+      
+      const buyBtn = card.querySelector('.buy-btn');
+      if (user.coins < item.price) {
+        buyBtn.style.background = '#d1d5db';
+        buyBtn.style.boxShadow = 'none';
+        buyBtn.disabled = true;
+      }
+      
+      buyBtn.addEventListener('click', () => buyItem(item));
+      elements.shopGrid.appendChild(card);
+    });
+
+    renderInventory();
+  }
+
+  function buyItem(item) {
+    const user = Store.getUser();
+    if (user.coins < item.price) return alert('코인이 부족합니다!');
+    
+    if (confirm(`'${item.name}'을(를) ${item.price} 코인에 구매하시겠습니까?`)) {
+      user.coins -= item.price;
+      if (!user.inventory) user.inventory = [];
+      
+      if (item.id === 'random_icon') {
+        const icons = ['🔥', '⭐', '💎', '🏆', '👑', '🦁', '🦉', '🚀'];
+        user.specialIcon = icons[Math.floor(Math.random() * icons.icons.length)];
+        alert(`특별한 아이콘 '${user.specialIcon}'(으)로 변경되었습니다!`);
+      } else {
+        user.inventory.push(item.id);
+        alert(`'${item.name}' 구매 완료! 인벤토리에 추가되었습니다.`);
+      }
+      
+      Store.setUser(user);
+      updateUI();
+      renderShop();
+    }
+  }
+
+  function renderInventory() {
+    if (!elements.inventoryList) return;
+    const user = Store.getUser();
+    const inventory = user.inventory || [];
+    
+    if (inventory.length === 0) {
+      elements.inventoryList.innerHTML = '<p class="sub-text">보유 중인 아이템이 없습니다.</p>';
+      return;
+    }
+    
+    elements.inventoryList.innerHTML = '';
+    inventory.forEach(itemId => {
+      const item = SHOP_ITEMS.find(i => i.id === itemId);
+      if (item) {
+        const badge = document.createElement('div');
+        badge.style.cssText = 'background: white; border: 2px solid #e5e7eb; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 700;';
+        badge.textContent = `${item.icon} ${item.name}`;
+        elements.inventoryList.appendChild(badge);
+      }
+    });
   }
 
   function setupProfileEvents() {

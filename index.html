@@ -437,6 +437,10 @@
         <i data-lucide="book-open"></i>
         <span>탐색</span>
       </button>
+      <button class="nav-item" data-target="shop">
+        <i data-lucide="shopping-bag"></i>
+        <span>상점</span>
+      </button>
       <button class="nav-item" data-target="practice">
         <i data-lucide="target"></i>
         <span>연습</span>
@@ -446,6 +450,25 @@
         <span>프로필</span>
       </button>
     </nav>
+
+    <!-- Shop Section -->
+    <section id="shopSection" class="section" style="display: none;">
+      <div class="welcome-msg">
+        <h2>코인 상점 🛍️</h2>
+        <p>열심히 모은 코인으로 아이템을 구매하세요.</p>
+      </div>
+
+      <div id="shopGrid" style="display: grid; gap: 15px;">
+        <!-- Items will be dynamic -->
+      </div>
+
+      <div class="mini-card" style="margin-top: 30px; background: #f8fafc;">
+        <h4>내 인벤토리</h4>
+        <div id="inventoryList" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <p class="sub-text">보유 중인 아이템이 없습니다.</p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="store.js"></script>
