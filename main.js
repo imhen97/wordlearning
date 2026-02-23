@@ -169,7 +169,7 @@ const App = (() => {
   function initAuthSDKs() {
     // Kakao Init
     if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-      Kakao.init('YOUR_KAKAO_JS_KEY'); // 사용자 실제 키로 교체 필요
+      Kakao.init('b576096ad9422df403f0cba82cbd51e7'); 
     }
     // Google Init (GIS)
     window.handleGoogleResponse = (response) => {
@@ -178,7 +178,7 @@ const App = (() => {
     };
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // 사용자 실제 키로 교체 필요
+        client_id: "AIzaSyD4T4VDf8NtKXxWXKWy45OqaHfAsR5mODo", 
         callback: window.handleGoogleResponse
       });
     }
