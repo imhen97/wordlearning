@@ -199,16 +199,24 @@ const App = (() => {
 
   // --- Auth SDK ---
   function initAuthSDKs() {
+    // Kakao Init
     if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-      Kakao.init('b576096ad9422df403f0cba82cbd51e7'); 
+      Kakao.init('d0b6904f303c56f56e8863a135da347f'); 
     }
+
+    // Google Init
     window.handleGoogleResponse = (response) => {
-      const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      onLoginSuccess(payload.name, 'google');
+      try {
+        const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        onLoginSuccess(payload.name, 'google');
+      } catch (e) {
+        console.error('Google login parsing failed', e);
+      }
     };
+
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: "AIzaSyD4T4VDf8NtKXxWXKWy45OqaHfAsR5mODo", 
+        client_id: "AIzaSyD4T4VDf8NtKXxWXKWy45OqaHfAsR5mODo", // 주의: OAuth 클라이언트 ID여야 합니다!
         callback: window.handleGoogleResponse
       });
     }
@@ -216,15 +224,30 @@ const App = (() => {
 
   function setupAuthEvents() {
     if (elements.kakaoLogin) elements.kakaoLogin.addEventListener('click', loginWithKakao);
-    if (elements.googleLogin) elements.googleLogin.addEventListener('click', () => google.accounts.id.prompt());
+    if (elements.googleLogin) elements.googleLogin.addEventListener('click', () => {
+      if (typeof google === 'undefined') return alert('구글 SDK 로딩 중...');
+      google.accounts.id.prompt();
+    });
     if (elements.guestLogin) elements.guestLogin.addEventListener('click', () => onLoginSuccess('게스트', 'guest'));
   }
 
   function loginWithKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('Kakao SDK 로딩 중...');
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중...');
     Kakao.Auth.login({
-      success: () => Kakao.API.request({ url: '/v2/user/me', success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao') }),
-      fail: (err) => console.error(err)
+      success: () => {
+        Kakao.API.request({
+          url: '/v2/user/me',
+          success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao'),
+          fail: (err) => {
+            console.error(err);
+            alert('사용자 정보를 가져오지 못했습니다. 도메인 등록을 확인해주세요.');
+          }
+        });
+      },
+      fail: (err) => {
+        console.error(err);
+        alert('카카오 로그인에 실패했습니다. 설정을 확인해주세요.');
+      }
     });
   }
 
