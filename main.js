@@ -181,7 +181,7 @@ const App = (() => {
     if (elements.headerProfileBtn) {
       elements.headerProfileBtn.addEventListener('click', () => {
         const user = Store.getUser();
-        if (user.authType === 'guest') showLogin();
+        if (user.authType === 'guest' || !user.isLoggedIn) showLogin();
         else switchSection('profile');
       });
     }
@@ -199,62 +199,87 @@ const App = (() => {
 
   // --- Auth SDK ---
   function initAuthSDKs() {
-    // Kakao Init
-    if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-      Kakao.init('d0b6904f303c56f56e8863a135da347f'); 
-    }
+    const KAKAO_KEY = 'd0b6904f303c56f56e8863a135da347f';
+    const GOOGLE_CLIENT_ID = '788651995754-gtaeksuj0ndhmtc76mjsccfg6u2c67sr.apps.googleusercontent.com';
 
-    // Google Init
+    // Kakao Initialization with retry
+    const tryInitKakao = (retries = 0) => {
+      if (typeof Kakao !== 'undefined') {
+        if (!Kakao.isInitialized()) {
+          Kakao.init(KAKAO_KEY);
+          console.log('Kakao SDK Initialized');
+        }
+      } else if (retries < 10) {
+        setTimeout(() => tryInitKakao(retries + 1), 500);
+      }
+    };
+    tryInitKakao();
+
+    // Google Initialization with retry
     window.handleGoogleResponse = (response) => {
       try {
         const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         onLoginSuccess(payload.name, 'google');
       } catch (e) {
-        console.error('Google login parsing failed', e);
+        console.error('Google Auth Parse Error:', e);
       }
     };
 
-    if (typeof google !== 'undefined') {
-      google.accounts.id.initialize({
-        client_id: "AIzaSyD4T4VDf8NtKXxWXKWy45OqaHfAsR5mODo", // 주의: OAuth 클라이언트 ID여야 합니다!
-        callback: window.handleGoogleResponse
-      });
-    }
+    const tryInitGoogle = (retries = 0) => {
+      if (typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: window.handleGoogleResponse
+        });
+        console.log('Google SDK Initialized');
+      } else if (retries < 10) {
+        setTimeout(() => tryInitGoogle(retries + 1), 500);
+      }
+    };
+    tryInitGoogle();
   }
 
   function setupAuthEvents() {
     if (elements.kakaoLogin) elements.kakaoLogin.addEventListener('click', loginWithKakao);
     if (elements.googleLogin) elements.googleLogin.addEventListener('click', () => {
-      if (typeof google === 'undefined') return alert('구글 SDK 로딩 중...');
-      google.accounts.id.prompt();
+      if (typeof google === 'undefined' || !google.accounts) return alert('구글 SDK 로딩 중입니다. 1~2초 후 다시 시도해주세요.');
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed()) {
+          console.log('Google Prompt Error:', notification.getNotDisplayedReason());
+          alert('구글 로그인 팝업을 띄울 수 없습니다. 브라우저 설정에서 팝업 차단을 해제하거나 다른 브라우저를 사용해 보세요.');
+        }
+      });
     });
     if (elements.guestLogin) elements.guestLogin.addEventListener('click', () => onLoginSuccess('게스트', 'guest'));
   }
 
   function loginWithKakao() {
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중...');
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('카카오 SDK 로딩 중입니다. 1~2초 후 다시 시도해주세요.');
     Kakao.Auth.login({
       success: () => {
         Kakao.API.request({
           url: '/v2/user/me',
           success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao'),
           fail: (err) => {
-            console.error(err);
-            alert('사용자 정보를 가져오지 못했습니다. 도메인 등록을 확인해주세요.');
+            console.error('Kakao User Info Error:', err);
+            alert('사용자 정보를 가져오지 못했습니다. 카카오 개발자 센터의 도메인 설정을 확인해주세요.');
           }
         });
       },
       fail: (err) => {
-        console.error(err);
-        alert('카카오 로그인에 실패했습니다. 설정을 확인해주세요.');
+        console.error('Kakao Login Error:', err);
+        alert('카카오 로그인에 실패했습니다. 사이트 도메인이 등록되어 있는지 확인해주세요.');
       }
     });
   }
 
   function onLoginSuccess(name, type) {
     const user = Store.getUser();
-    user.name = name; user.isLoggedIn = true; user.authType = type;
-    Store.setUser(user); completeLogin();
+    user.name = name; 
+    user.isLoggedIn = true; 
+    user.authType = type;
+    Store.setUser(user); 
+    completeLogin();
   }
 
   function showLogin() {
@@ -300,7 +325,7 @@ const App = (() => {
     
     // Header Profile Button Update
     if (elements.headerProfileBtn && elements.headerUserIcon) {
-      const isGuest = user.authType === 'guest';
+      const isGuest = user.authType === 'guest' || !user.isLoggedIn;
       elements.headerProfileBtn.classList.toggle('is-guest', isGuest);
       elements.headerUserIcon.textContent = isGuest ? '로그인' : levelInfo.current.icon;
     }
