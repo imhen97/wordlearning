@@ -8,21 +8,49 @@
 </head>
 <body>
   <div class="container">
-    <div class="mode-toggle">
-      <button id="toggleMode" class="btn-secondary">학습 모드 전환</button>
-    </div>
-    
-    <h1>English Vocab</h1>
-    
-    <div id="vocabCard" class="card">
-      <div id="wordDisplay" class="word">Loading...</div>
-      <div id="meaningDisplay" class="meaning">뜻</div>
-      <div id="sentenceDisplay" class="sentence">문장</div>
+    <!-- Level Test Section -->
+    <div id="levelTestSection">
+      <h1>Welcome to English Vocab!</h1>
+      <p>Let's find the best course for you.</p>
+      <button id="startLevelTest" class="btn-primary">Take Level Test</button>
     </div>
 
-    <div class="controls">
-      <button id="showAnswer" class="btn-secondary">정답 보기</button>
-      <button id="nextWord" class="btn-primary">다음 단어</button>
+    <!-- Test Quiz Section (Hidden by default) -->
+    <div id="quizSection" style="display: none;">
+      <h2 id="quizQuestion">Question 1/5</h2>
+      <div id="quizWord" class="word">?</div>
+      <div id="quizOptions" class="controls" style="margin-top: 2rem;">
+        <!-- Options will be injected here -->
+      </div>
+    </div>
+
+    <!-- Recommendation Section (Hidden by default) -->
+    <div id="recommendationSection" style="display: none;">
+      <h2>Your Recommended Course</h2>
+      <div id="recommendedCourse" class="word" style="font-size: 1.8rem; margin: 1rem 0;">-</div>
+      <p id="courseDesc">Based on your level, we recommend this course.</p>
+      <button id="startCourse" class="btn-primary">Start Learning</button>
+    </div>
+
+    <!-- Main App Section (Hidden by default) -->
+    <div id="mainAppSection" style="display: none;">
+      <div class="mode-toggle">
+        <button id="toggleMode" class="btn-secondary">학습 모드 전환</button>
+      </div>
+      
+      <h1 id="appTitle">English Vocab</h1>
+      
+      <div id="vocabCard" class="card">
+        <div id="wordDisplay" class="word">Loading...</div>
+        <div id="meaningDisplay" class="meaning">뜻</div>
+        <div id="sentenceDisplay" class="sentence">문장</div>
+      </div>
+
+      <div class="controls">
+        <button id="showAnswer" class="btn-secondary">정답 보기</button>
+        <button id="nextWord" class="btn-primary">다음 단어</button>
+      </div>
+      <button id="retakeTest" class="btn-secondary" style="margin-top: 20px; font-size: 0.8rem;">레벨테스트 다시 하기</button>
     </div>
   </div>
 
