@@ -1,6 +1,6 @@
 :root {
-  --primary: #58cc02;
-  --primary-dark: #46a302;
+  --primary: #ff9600; /* engz 메인 오렌지 */
+  --primary-dark: #e68a00;
   --bg-color: #ffffff;
   --surface: #f7f7f7;
   --text-main: #1f2937;
