@@ -25,11 +25,11 @@ const courses = {
     title: "Advanced Course",
     desc: "Master sophisticated and complex expressions.",
     vocab: [
+      { word: "situationship", meaning: "애매한 관계 (썸과 연애 사이)", sentence: "We're not dating, it's just a situationship." },
+      { word: "hard launch", meaning: "연애 공식 선포 (얼굴 공개)", sentence: "She finally hard-launched her boyfriend on Instagram." },
       { word: "serendipity", meaning: "뜻밖의 행운", sentence: "Finding that old photo was a moment of serendipity." },
       { word: "quintessential", meaning: "전형적인, 본질적인", sentence: "It was the quintessential small-town American experience." },
-      { word: "ephemeral", meaning: "수명이 짧은, 덧없는", sentence: "The beauty of cherry blossoms is ephemeral." },
-      { word: "ubiquitous", meaning: "어디에나 있는", sentence: "Cell phones are now ubiquitous in our daily lives." },
-      { word: "enigmatic", meaning: "수수께끼 같은, 난해한", sentence: "She gave him an enigmatic smile." }
+      { word: "ephemeral", meaning: "수명이 짧은, 덧없는", sentence: "The beauty of cherry blossoms is ephemeral." }
     ]
   }
 };
