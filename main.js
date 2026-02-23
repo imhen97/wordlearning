@@ -216,7 +216,7 @@ const App = (() => {
 
   // --- Auth SDK ---
   function initAuthSDKs() {
-    const KAKAO_KEY = '97fd6eeea0cb0a11f61d0a9ffd3a47f0';
+    const KAKAO_KEY = '8330b9a35b2856398ca6679bc44c23ae';
     const GOOGLE_CLIENT_ID = '788651995754-gtaeksuj0ndhmtc76mjsccfg6u2c67sr.apps.googleusercontent.com';
 
     // Kakao Init (v2)
