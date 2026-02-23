@@ -634,3 +634,127 @@ body {
 .settings-item.danger i {
   color: #ef4444;
 }
+
+/* Rank Badge & Result Styles */
+.rank-badge-large {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
+  border: 5px solid white;
+}
+
+.result-box {
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+#testStatusText {
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Login Screen Styles */
+.login-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+}
+
+.login-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.logo-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--primary);
+  color: white;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 10px 20px rgba(88, 204, 2, 0.2);
+}
+
+.login-logo h1 { font-size: 2.5rem; font-weight: 900; margin: 0; letter-spacing: -0.05em; }
+.login-logo p { color: var(--text-sub); margin: 8px 0 0 0; font-weight: 600; }
+
+.login-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-login {
+  width: 100%;
+  height: 56px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.btn-login:active { transform: scale(0.98); }
+
+.btn-login img { width: 24px; height: 24px; }
+
+.btn-login.kakao { background: #FEE500; color: #191919; }
+.btn-login.google { background: white; color: #1f2937; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-weight: 700;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.login-footer {
+  font-size: 0.75rem;
+  color: #afafaf;
+  text-align: center;
+  line-height: 1.4;
+}

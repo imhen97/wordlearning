@@ -19,7 +19,15 @@ const Store = (() => {
   };
 
   return {
-    getUser: () => get(KEYS.USER, { name: '학습자', xp: 0, dailyGoal: 10 }),
+    getUser: () => get(KEYS.USER, { 
+      name: '학습자', 
+      xp: 0, 
+      dailyGoal: 10,
+      currentRank: 'Unranked',
+      lastTestDate: null,
+      isLoggedIn: false,
+      authType: null
+    }),
     setUser: (data) => set(KEYS.USER, data),
     
     getDaily: () => {

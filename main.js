@@ -1,4 +1,4 @@
-// main.js - Final Combined Logic
+// main.js - Comprehensive App Logic with Real API Integration
 
 const App = (() => {
   // DOM Elements
@@ -16,7 +16,15 @@ const App = (() => {
     startTodayLesson: document.getElementById('startTodayLesson'),
     categoryGrid: document.getElementById('categoryGrid'),
     homeCategories: document.querySelectorAll('.cat-item'),
+    appHeader: document.querySelector('.header'),
+    bottomNav: document.querySelector('.bottom-nav'),
     
+    // Auth Elements
+    loginSection: document.getElementById('loginSection'),
+    kakaoLogin: document.getElementById('kakaoLogin'),
+    googleLogin: document.getElementById('googleLogin'),
+    guestLogin: document.getElementById('guestLogin'),
+
     // Learning Elements
     learningSection: document.getElementById('learningSection'),
     closeLearning: document.getElementById('closeLearning'),
@@ -56,7 +64,24 @@ const App = (() => {
     statStreak: document.getElementById('statStreak'),
     statLevel: document.getElementById('statLevel'),
     editNameBtn: document.getElementById('editNameBtn'),
-    resetProgressBtn: document.getElementById('resetProgressBtn')
+    resetProgressBtn: document.getElementById('resetProgressBtn'),
+
+    // Test Elements
+    startTestBtn: document.getElementById('startTestBtn'),
+    testSection: document.getElementById('testSection'),
+    resultSection: document.getElementById('resultSection'),
+    closeTest: document.getElementById('closeTest'),
+    testQuestion: document.getElementById('testQuestion'),
+    testOptions: document.getElementById('testOptions'),
+    testProgressBar: document.getElementById('testProgressBar'),
+    testProgressText: document.getElementById('testProgressText'),
+    resultRankBadge: document.getElementById('resultRankBadge'),
+    resultRankTitle: document.getElementById('resultRankTitle'),
+    resultRankDesc: document.getElementById('resultRankDesc'),
+    testScore: document.getElementById('testScore'),
+    testTime: document.getElementById('testTime'),
+    testStatusText: document.getElementById('testStatusText'),
+    backToPractice: document.getElementById('backToPractice')
   };
 
   const LESSON_DATA = {
@@ -98,297 +123,122 @@ const App = (() => {
     }
   };
 
-  let lessonState = {
-    currentIndex: 0,
-    isFlipped: false,
-    currentList: []
+  const RANK_DATA = {
+    'Unranked': { title: '등급 없음', desc: '테스트를 통해 등급을 확인하세요.' },
+    'A1': { title: '입문자 (Beginner)', desc: '기본적인 단어와 아주 간단한 문장을 이해합니다.' },
+    'A2': { title: '초보자 (Elementary)', desc: '일상적인 주제에 대해 짧은 대화를 나눌 수 있습니다.' },
+    'B1': { title: '중급자 (Intermediate)', desc: '친숙한 주제에 대해 자신의 의견을 표현할 수 있습니다.' },
+    'B2': { title: '능숙자 (Upper Intermediate)', desc: '복잡한 문장을 이해하고 자연스럽게 소통합니다.' },
+    'C1': { title: '고급자 (Advanced)', desc: '광범위하고 까다로운 주제를 유창하게 다룹니다.' },
+    'C2': { title: '전문가 (Master)', desc: '원어민에 가까운 수준으로 언어를 완벽히 구사합니다.' }
   };
 
-  let quizState = {
-    currentIndex: 0,
-    questions: [],
-    correctCount: 0
-  };
+  const TEST_QUESTIONS = [
+    { q: 'He ____ to school every day.', options: ['go', 'goes', 'going', 'went'], correct: 'goes' },
+    { q: 'I haven\'t seen him ____ last year.', options: ['for', 'since', 'during', 'at'], correct: 'since' },
+    { q: 'If it ____ tomorrow, we will stay home.', options: ['rain', 'rains', 'will rain', 'rained'], correct: 'rains' },
+    { q: 'Choose the synonym of "Tiny":', options: ['Huge', 'Small', 'Fast', 'Heavy'], correct: 'Small' },
+    { q: 'She is interested ____ learning art.', options: ['on', 'at', 'in', 'with'], correct: 'in' },
+    { q: 'I wish I ____ a billionaire.', options: ['am', 'was', 'were', 'be'], correct: 'were' },
+    { q: 'The movie was ____ than I expected.', options: ['good', 'better', 'best', 'more good'], correct: 'better' },
+    { q: 'Would you mind ____ the window?', options: ['open', 'to open', 'opening', 'opened'], correct: 'opening' },
+    { q: 'He ____ his keys. He is looking for them now.', options: ['lost', 'has lost', 'had lost', 'loses'], correct: 'has lost' },
+    { q: 'The term "Piece of cake" means:', options: ['Very difficult', 'Delicious', 'Very easy', 'A small slice'], correct: 'Very easy' }
+  ];
+
+  let lessonState = { currentIndex: 0, isFlipped: false, currentList: [] };
+  let quizState = { currentIndex: 0, questions: [], correctCount: 0 };
+  let testState = { currentIndex: 0, score: 0, startTime: null };
 
   function init() {
+    initAuthSDKs();
+    setupAuthEvents();
     setupNavigation();
     setupLessonEvents();
     setupQuizEvents();
     setupProfileEvents();
+    setupTestEvents();
     renderLibrary();
     
     const user = Store.getUser();
-    if (!user.name) {
-      Store.setUser({ name: '학습자', xp: 0, dailyGoal: 10 });
-    }
+    if (user.isLoggedIn) completeLogin();
+    else showLogin();
+  }
 
-    updateUI();
-
-    if (elements.startTodayLesson) {
-      elements.startTodayLesson.addEventListener('click', () => startLesson('daily'));
+  // --- Auth SDK ---
+  function initAuthSDKs() {
+    // Kakao Init
+    if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+      Kakao.init('YOUR_KAKAO_JS_KEY'); // 사용자 실제 키로 교체 필요
     }
-    
-    if (elements.closeLearning) {
-      elements.closeLearning.addEventListener('click', () => switchSection('home'));
-    }
-
-    // Home category buttons
-    elements.homeCategories.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cat = btn.getAttribute('data-category');
-        startLesson(cat);
+    // Google Init (GIS)
+    window.handleGoogleResponse = (response) => {
+      const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      onLoginSuccess(payload.name, 'google');
+    };
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // 사용자 실제 키로 교체 필요
+        callback: window.handleGoogleResponse
       });
+    }
+  }
+
+  function setupAuthEvents() {
+    if (elements.kakaoLogin) elements.kakaoLogin.addEventListener('click', loginWithKakao);
+    if (elements.googleLogin) elements.googleLogin.addEventListener('click', () => google.accounts.id.prompt());
+    if (elements.guestLogin) elements.guestLogin.addEventListener('click', () => onLoginSuccess('게스트', 'guest'));
+  }
+
+  function loginWithKakao() {
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return alert('Kakao SDK 로딩 중...');
+    Kakao.Auth.login({
+      success: () => Kakao.API.request({ url: '/v2/user/me', success: (res) => onLoginSuccess(res.kakao_account.profile.nickname, 'kakao') }),
+      fail: (err) => console.error(err)
     });
   }
 
-  function renderLibrary() {
-    if (!elements.categoryGrid) return;
-    elements.categoryGrid.innerHTML = '';
-
-    Object.keys(LESSON_DATA).forEach(key => {
-      const cat = LESSON_DATA[key];
-      const card = document.createElement('div');
-      card.className = 'category-card';
-      card.innerHTML = `
-        <div class="cat-icon">${cat.icon}</div>
-        <div class="cat-info">
-          <h4>${cat.title}</h4>
-          <p>${cat.count} Expressions</p>
-        </div>
-        <div class="cat-badge">NEW</div>
-      `;
-      card.addEventListener('click', () => startLesson(key));
-      elements.categoryGrid.appendChild(card);
-    });
+  function onLoginSuccess(name, type) {
+    const user = Store.getUser();
+    user.name = name; user.isLoggedIn = true; user.authType = type;
+    Store.setUser(user); completeLogin();
   }
 
-  // --- Lesson Logic ---
-  function startLesson(categoryKey = 'daily') {
-    const category = LESSON_DATA[categoryKey] || LESSON_DATA.daily;
-    lessonState.currentList = category.words;
-    lessonState.currentIndex = 0;
-    lessonState.isFlipped = false;
-    renderCard();
-    switchSection('learning');
+  function showLogin() {
+    elements.loginSection.style.display = 'flex';
+    if (elements.appHeader) elements.appHeader.style.display = 'none';
+    if (elements.bottomNav) elements.bottomNav.style.display = 'none';
+    elements.sections.forEach(s => { if (s.id !== 'loginSection') s.style.display = 'none'; });
   }
 
-  function renderCard() {
-    const data = lessonState.currentList[lessonState.currentIndex];
-    if (!data) return;
-
-    elements.cardWord.textContent = data.word;
-    elements.cardMeaning.textContent = data.meaning;
-    elements.cardSentence.textContent = data.sentence;
-    elements.cardTranslation.textContent = data.translation;
-    
-    elements.activeCard.classList.remove('is-flipped');
-    lessonState.isFlipped = false;
-
-    // Progress
-    const progress = ((lessonState.currentIndex + 1) / lessonState.currentList.length) * 100;
-    elements.lessonProgressBar.style.width = `${progress}%`;
-    elements.lessonProgressText.textContent = `${lessonState.currentIndex + 1}/${lessonState.currentList.length}`;
+  function completeLogin() {
+    elements.loginSection.style.display = 'none';
+    if (elements.appHeader) elements.appHeader.style.display = 'flex';
+    if (elements.bottomNav) elements.bottomNav.style.display = 'flex';
+    switchSection('home'); updateUI();
   }
 
-  function handleSwipe(direction) {
-    const feedback = direction === 'right' ? elements.feedbackLike : elements.feedbackNope;
-    if (feedback) feedback.style.opacity = '1';
-
-    const moveX = direction === 'right' ? 500 : -500;
-    const rotate = direction === 'right' ? 30 : -30;
-    
-    elements.activeCard.style.transform = `translateX(${moveX}px) rotate(${rotate}deg)`;
-    elements.activeCard.style.opacity = '0';
-
-    setTimeout(() => {
-      if (feedback) feedback.style.opacity = '0';
-      Gamification.awardXP('CARD_SEEN');
-      
-      lessonState.currentIndex++;
-      if (lessonState.currentIndex < lessonState.currentList.length) {
-        elements.activeCard.style.transition = 'none';
-        elements.activeCard.style.transform = 'none';
-        elements.activeCard.style.opacity = '1';
-        renderCard();
-        setTimeout(() => { elements.activeCard.style.transition = ''; }, 10);
-      } else {
-        finishLesson();
-      }
-      updateUI();
-    }, 300);
-  }
-
-  function finishLesson() {
-    alert('오늘의 학습 완료! XP 보너스를 획득했습니다.');
-    Gamification.awardXP('DAILY_GOAL');
-    switchSection('home');
-  }
-
-  function setupLessonEvents() {
-    if (elements.btnFlip) {
-      elements.btnFlip.addEventListener('click', () => {
-        lessonState.isFlipped = !lessonState.isFlipped;
-        elements.activeCard.classList.toggle('is-flipped', lessonState.isFlipped);
-      });
-    }
-
-    if (elements.activeCard) {
-      elements.activeCard.addEventListener('click', (e) => {
-        if (!e.target.closest('.audio-btn')) {
-          elements.btnFlip.click();
-        }
-      });
-    }
-
-    if (elements.btnLike) elements.btnLike.addEventListener('click', () => handleSwipe('right'));
-    if (elements.btnNope) elements.btnNope.addEventListener('click', () => handleSwipe('left'));
-  }
-
-  // --- Quiz Logic ---
-  function setupQuizEvents() {
-    if (elements.startQuizBtn) elements.startQuizBtn.addEventListener('click', startQuiz);
-    if (elements.closeQuiz) elements.closeQuiz.addEventListener('click', () => switchSection('practice'));
-    if (elements.nextQuizBtn) elements.nextQuizBtn.addEventListener('click', nextQuestion);
-  }
-
-  function startQuiz() {
-    quizState.currentIndex = 0;
-    quizState.correctCount = 0;
-    
-    const allWords = Object.values(LESSON_DATA).flatMap(cat => cat.words);
-    quizState.questions = [...allWords].sort(() => 0.5 - Math.random()).slice(0, 5);
-    
-    renderQuizQuestion();
-    switchSection('quiz');
-  }
-
-  function renderQuizQuestion() {
-    const q = quizState.questions[quizState.currentIndex];
-    elements.quizQuestion.textContent = `"${q.word}"의 뜻은?`;
-    elements.quizFeedback.style.display = 'none';
-    
-    const allMeanings = Object.values(LESSON_DATA).flatMap(cat => cat.words.map(w => w.meaning));
-    const wrongOptions = allMeanings.filter(m => m !== q.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
-    const options = [q.meaning, ...wrongOptions].sort(() => 0.5 - Math.random());
-
-    elements.quizOptions.innerHTML = '';
-    options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.className = 'option-btn';
-      btn.textContent = opt;
-      btn.addEventListener('click', () => checkAnswer(btn, opt, q.meaning));
-      elements.quizOptions.appendChild(btn);
-    });
-
-    const progress = (quizState.currentIndex / quizState.questions.length) * 100;
-    elements.quizProgressBar.style.width = `${progress}%`;
-    elements.quizProgressText.textContent = `${quizState.currentIndex + 1}/${quizState.questions.length}`;
-  }
-
-  function checkAnswer(btn, selected, correct) {
-    if (elements.quizFeedback.style.display === 'block') return;
-
-    const isCorrect = selected === correct;
-    btn.classList.add(isCorrect ? 'correct' : 'wrong');
-
-    if (!isCorrect) {
-      Array.from(elements.quizOptions.children).forEach(b => {
-        if (b.textContent === correct) b.classList.add('correct');
-      });
-    } else {
-      quizState.correctCount++;
-      Gamification.awardXP('QUIZ_CORRECT');
-    }
-
-    elements.feedbackStatus.textContent = isCorrect ? '정답입니다!' : '아쉬워요!';
-    elements.feedbackMeaning.textContent = `${quizState.questions[quizState.currentIndex].word}: ${correct}`;
-    elements.quizFeedback.style.display = 'block';
-    
-    const fbColor = isCorrect ? '#22c55e' : '#ef4444';
-    const fbBg = isCorrect ? '#dcfce7' : '#fee2e2';
-    elements.quizFeedback.style.borderTopColor = fbColor;
-    elements.feedbackIconBox.style.background = fbBg;
-    elements.feedbackIconBox.style.color = fbColor;
-    elements.fbIcon.setAttribute('data-lucide', isCorrect ? 'check-circle' : 'alert-circle');
-    lucide.createIcons();
-    
-    updateUI();
-  }
-
-  function nextQuestion() {
-    quizState.currentIndex++;
-    if (quizState.currentIndex < quizState.questions.length) {
-      renderQuizQuestion();
-    } else {
-      finishQuiz();
-    }
-  }
-
-  function finishQuiz() {
-    alert(`퀴즈 완료! 성적: ${quizState.correctCount}/${quizState.questions.length}`);
-    if (quizState.correctCount === quizState.questions.length) {
-      Gamification.awardXP('PERFECT_SESSION');
-    }
-    switchSection('practice');
-  }
-
-  // --- Profile Logic ---
-  function setupProfileEvents() {
-    if (elements.editNameBtn) {
-      elements.editNameBtn.addEventListener('click', () => {
-        const newName = prompt('새로운 이름을 입력하세요:', Store.getUser().name);
-        if (newName && newName.trim()) {
-          const user = Store.getUser();
-          user.name = newName.trim();
-          Store.setUser(user);
-          updateUI();
-        }
-      });
-    }
-
-    if (elements.resetProgressBtn) {
-      elements.resetProgressBtn.addEventListener('click', () => {
-        if (confirm('모든 학습 데이터가 초기화됩니다. 정말 진행하시겠습니까?')) {
-          localStorage.clear();
-          location.reload();
-        }
-      });
-    }
-  }
-
-  // --- Core Navigation ---
+  // --- Navigation ---
   function setupNavigation() {
     elements.navItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const target = item.getAttribute('data-target');
-        switchSection(target);
-      });
+      item.addEventListener('click', () => switchSection(item.getAttribute('data-target')));
     });
   }
 
   function switchSection(target) {
-    const bottomNav = document.querySelector('.bottom-nav');
-    if (bottomNav) {
-      bottomNav.style.display = (target === 'learning' || target === 'quiz') ? 'none' : 'flex';
-    }
-
-    elements.navItems.forEach(nav => {
-      nav.classList.toggle('active', nav.getAttribute('data-target') === target);
-    });
-
-    elements.sections.forEach(section => {
-      if (section) {
-        section.style.display = section.id === `${target}Section` ? 'block' : 'none';
-      }
-    });
+    const isSpecial = ['learning', 'quiz', 'test', 'result', 'login'].includes(target);
+    if (elements.bottomNav) elements.bottomNav.style.display = isSpecial ? 'none' : 'flex';
+    if (elements.appHeader) elements.appHeader.style.display = target === 'login' ? 'none' : 'flex';
+    elements.navItems.forEach(nav => nav.classList.toggle('active', nav.getAttribute('data-target') === target));
+    elements.sections.forEach(section => { if (section) section.style.display = section.id === `${target}Section` ? 'block' : 'none'; });
   }
 
+  // --- UI Update ---
   function updateUI() {
     const user = Store.getUser();
     const streak = Gamification.updateStreak();
     const levelInfo = Gamification.getLevelInfo(user.xp);
     const daily = Gamification.getDailyProgress();
-
     if (elements.streakCount) elements.streakCount.textContent = streak.count || 0;
     if (elements.totalXp) elements.totalXp.textContent = user.xp || 0;
     if (elements.userLevelIcon) elements.userLevelIcon.textContent = levelInfo.current.icon;
@@ -397,14 +247,202 @@ const App = (() => {
     if (elements.remainingXp) elements.remainingXp.textContent = Math.max(0, daily.goal - daily.current);
     if (elements.dailyProgressBar) elements.dailyProgressBar.style.width = `${daily.pct}%`;
     if (elements.dailyProgressText) elements.dailyProgressText.textContent = `${daily.cards}/${daily.goalCards}`;
-
-    // Profile Section
     if (elements.profileName) elements.profileName.textContent = `${user.name}님`;
     if (elements.profileLevelIcon) elements.profileLevelIcon.textContent = levelInfo.current.icon;
     if (elements.profileLevelTitle) elements.profileLevelTitle.textContent = `${levelInfo.current.title} (Level ${levelInfo.current.level})`;
     if (elements.statTotalXp) elements.statTotalXp.textContent = user.xp;
     if (elements.statStreak) elements.statStreak.textContent = streak.count;
     if (elements.statLevel) elements.statLevel.textContent = levelInfo.current.level;
+    if (elements.testStatusText) {
+      const rank = user.currentRank || 'Unranked';
+      elements.testStatusText.textContent = rank === 'Unranked' ? '내 등급을 확인해보세요!' : `현재 등급: ${rank} (${RANK_DATA[rank].title})`;
+    }
+  }
+
+  // --- Shared Setup ---
+  function renderLibrary() {
+    if (!elements.categoryGrid) return;
+    elements.categoryGrid.innerHTML = '';
+    Object.keys(LESSON_DATA).forEach(key => {
+      const cat = LESSON_DATA[key];
+      const card = document.createElement('div');
+      card.className = 'category-card';
+      card.innerHTML = `<div class="cat-icon">${cat.icon}</div><div class="cat-info"><h4>${cat.title}</h4><p>${cat.count} Expressions</p></div><div class="cat-badge">NEW</div>`;
+      card.addEventListener('click', () => startLesson(key));
+      elements.categoryGrid.appendChild(card);
+    });
+  }
+
+  function startLesson(categoryKey = 'daily') {
+    const category = LESSON_DATA[categoryKey] || LESSON_DATA.daily;
+    lessonState.currentList = category.words; lessonState.currentIndex = 0; lessonState.isFlipped = false;
+    renderCard(); switchSection('learning');
+  }
+
+  function renderCard() {
+    const data = lessonState.currentList[lessonState.currentIndex];
+    if (!data) return;
+    elements.cardWord.textContent = data.word; elements.cardMeaning.textContent = data.meaning;
+    elements.cardSentence.textContent = data.sentence; elements.cardTranslation.textContent = data.translation;
+    elements.activeCard.classList.remove('is-flipped'); lessonState.isFlipped = false;
+    const progress = ((lessonState.currentIndex + 1) / lessonState.currentList.length) * 100;
+    elements.lessonProgressBar.style.width = `${progress}%`;
+    elements.lessonProgressText.textContent = `${lessonState.currentIndex + 1}/${lessonState.currentList.length}`;
+  }
+
+  function handleSwipe(direction) {
+    const feedback = direction === 'right' ? elements.feedbackLike : elements.feedbackNope;
+    if (feedback) feedback.style.opacity = '1';
+    const moveX = direction === 'right' ? 500 : -500;
+    const rotate = direction === 'right' ? 30 : -30;
+    elements.activeCard.style.transform = `translateX(${moveX}px) rotate(${rotate}deg)`;
+    elements.activeCard.style.opacity = '0';
+    setTimeout(() => {
+      if (feedback) feedback.style.opacity = '0';
+      Gamification.awardXP('CARD_SEEN');
+      lessonState.currentIndex++;
+      if (lessonState.currentIndex < lessonState.currentList.length) {
+        elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = 'none';
+        elements.activeCard.style.opacity = '1'; renderCard();
+        setTimeout(() => { elements.activeCard.style.transition = ''; }, 10);
+      } else { finishLesson(); }
+      updateUI();
+    }, 300);
+  }
+
+  function finishLesson() {
+    alert('오늘의 학습 완료! XP 보너스를 획득했습니다.');
+    Gamification.awardXP('DAILY_GOAL'); switchSection('home');
+  }
+
+  function setupLessonEvents() {
+    if (elements.btnFlip) elements.btnFlip.addEventListener('click', () => {
+      lessonState.isFlipped = !lessonState.isFlipped;
+      elements.activeCard.classList.toggle('is-flipped', lessonState.isFlipped);
+    });
+    if (elements.activeCard) elements.activeCard.addEventListener('click', (e) => {
+      if (!e.target.closest('.audio-btn')) elements.btnFlip.click();
+    });
+    if (elements.btnLike) elements.btnLike.addEventListener('click', () => handleSwipe('right'));
+    if (elements.btnNope) elements.btnNope.addEventListener('click', () => handleSwipe('left'));
+    if (elements.closeLearning) elements.closeLearning.addEventListener('click', () => switchSection('home'));
+    if (elements.startTodayLesson) elements.startTodayLesson.addEventListener('click', () => startLesson('daily'));
+    elements.homeCategories.forEach(btn => btn.addEventListener('click', () => startLesson(btn.getAttribute('data-category'))));
+  }
+
+  function setupQuizEvents() {
+    if (elements.startQuizBtn) elements.startQuizBtn.addEventListener('click', startQuiz);
+    if (elements.closeQuiz) elements.closeQuiz.addEventListener('click', () => switchSection('practice'));
+    if (elements.nextQuizBtn) elements.nextQuizBtn.addEventListener('click', nextQuestion);
+  }
+
+  function startQuiz() {
+    quizState.currentIndex = 0; quizState.correctCount = 0;
+    const allWords = Object.values(LESSON_DATA).flatMap(cat => cat.words);
+    quizState.questions = [...allWords].sort(() => 0.5 - Math.random()).slice(0, 5);
+    renderQuizQuestion(); switchSection('quiz');
+  }
+
+  function renderQuizQuestion() {
+    const q = quizState.questions[quizState.currentIndex];
+    elements.quizQuestion.textContent = `"${q.word}"의 뜻은?`;
+    elements.quizFeedback.style.display = 'none';
+    const allMeanings = Object.values(LESSON_DATA).flatMap(cat => cat.words.map(w => w.meaning));
+    const wrongOptions = allMeanings.filter(m => m !== q.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
+    const options = [q.meaning, ...wrongOptions].sort(() => 0.5 - Math.random());
+    elements.quizOptions.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button'); btn.className = 'option-btn'; btn.textContent = opt;
+      btn.addEventListener('click', () => checkAnswer(btn, opt, q.meaning));
+      elements.quizOptions.appendChild(btn);
+    });
+    const progress = (quizState.currentIndex / quizState.questions.length) * 100;
+    elements.quizProgressBar.style.width = `${progress}%`;
+    elements.quizProgressText.textContent = `${quizState.currentIndex + 1}/${quizState.questions.length}`;
+  }
+
+  function checkAnswer(btn, selected, correct) {
+    if (elements.quizFeedback.style.display === 'block') return;
+    const isCorrect = selected === correct;
+    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect) Array.from(elements.quizOptions.children).forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+    else { quizState.correctCount++; Gamification.awardXP('QUIZ_CORRECT'); }
+    elements.feedbackStatus.textContent = isCorrect ? '정답입니다!' : '아쉬워요!';
+    elements.feedbackMeaning.textContent = `${quizState.questions[quizState.currentIndex].word}: ${correct}`;
+    elements.quizFeedback.style.display = 'block';
+    const fbColor = isCorrect ? '#22c55e' : '#ef4444';
+    const fbBg = isCorrect ? '#dcfce7' : '#fee2e2';
+    elements.quizFeedback.style.borderTopColor = fbColor;
+    elements.feedbackIconBox.style.background = fbBg;
+    elements.feedbackIconBox.style.color = fbColor;
+    elements.fbIcon.setAttribute('data-lucide', isCorrect ? 'check-circle' : 'alert-circle');
+    lucide.createIcons(); updateUI();
+  }
+
+  function nextQuestion() {
+    quizState.currentIndex++;
+    if (quizState.currentIndex < quizState.questions.length) renderQuizQuestion();
+    else finishQuiz();
+  }
+
+  function finishQuiz() {
+    alert(`퀴즈 완료! 성적: ${quizState.correctCount}/${quizState.questions.length}`);
+    if (quizState.correctCount === quizState.questions.length) Gamification.awardXP('PERFECT_SESSION');
+    switchSection('practice');
+  }
+
+  function setupTestEvents() {
+    if (elements.startTestBtn) elements.startTestBtn.addEventListener('click', startTest);
+    if (elements.closeTest) elements.closeTest.addEventListener('click', () => switchSection('practice'));
+    if (elements.backToPractice) elements.backToPractice.addEventListener('click', () => switchSection('practice'));
+  }
+
+  function startTest() {
+    testState.currentIndex = 0; testState.score = 0; testState.startTime = new Date();
+    renderTestQuestion(); switchSection('test');
+  }
+
+  function renderTestQuestion() {
+    const q = TEST_QUESTIONS[testState.currentIndex];
+    elements.testQuestion.textContent = q.q; elements.testOptions.innerHTML = '';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button'); btn.className = 'option-btn'; btn.textContent = opt;
+      btn.addEventListener('click', () => { if (opt === q.correct) testState.score++; nextTestStep(); });
+      elements.testOptions.appendChild(btn);
+    });
+    const progress = (testState.currentIndex / TEST_QUESTIONS.length) * 100;
+    elements.testProgressBar.style.width = `${progress}%`;
+    elements.testProgressText.textContent = `${testState.currentIndex + 1}/${TEST_QUESTIONS.length}`;
+  }
+
+  function nextTestStep() {
+    testState.currentIndex++;
+    if (testState.currentIndex < TEST_QUESTIONS.length) renderTestQuestion();
+    else showTestResult();
+  }
+
+  function showTestResult() {
+    const score = testState.score;
+    let rank = 'A1';
+    if (score >= 10) rank = 'C2'; else if (score >= 9) rank = 'C1'; else if (score >= 7) rank = 'B2';
+    else if (score >= 5) rank = 'B1'; else if (score >= 3) rank = 'A2';
+    const data = RANK_DATA[rank];
+    elements.resultRankBadge.textContent = rank; elements.resultRankTitle.textContent = data.title;
+    elements.resultRankDesc.textContent = data.desc; elements.testScore.textContent = `${score}/${TEST_QUESTIONS.length}`;
+    const timeTaken = Math.floor((new Date() - testState.startTime) / 1000);
+    elements.testTime.textContent = `${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}`;
+    const user = Store.getUser(); user.currentRank = rank; user.lastTestDate = new Date().toISOString();
+    Store.setUser(user); updateUI(); switchSection('result');
+  }
+
+  function setupProfileEvents() {
+    if (elements.editNameBtn) elements.editNameBtn.addEventListener('click', () => {
+      const newName = prompt('새로운 이름을 입력하세요:', Store.getUser().name);
+      if (newName && newName.trim()) { const user = Store.getUser(); user.name = newName.trim(); Store.setUser(user); updateUI(); }
+    });
+    if (elements.resetProgressBtn) elements.resetProgressBtn.addEventListener('click', () => {
+      if (confirm('모든 학습 데이터가 초기화됩니다. 정말 진행하시겠습니까?')) { localStorage.clear(); location.reload(); }
+    });
   }
 
   return { init };

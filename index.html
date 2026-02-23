@@ -6,10 +6,38 @@
   <title>Vocab - Fun English Expression</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Kakao SDK -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js" integrity="sha384-l+xbElFSnPZ2rOaPrU//2FF5B4LB8FiX5q4fXYTlfcG4PGpMkE1vcL7kNXI6Cci0" crossorigin="anonymous"></script>
+  <!-- Google SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div class="app-container">
-    <header class="header">
+    <!-- Login Section -->
+    <section id="loginSection" class="section login-screen">
+      <div class="login-content">
+        <div class="login-logo">
+          <div class="logo-icon">V</div>
+          <h1>Vocab</h1>
+          <p>하루 3분, 가장 쉬운 영어 학습</p>
+        </div>
+
+        <div class="login-buttons">
+          <button id="kakaoLogin" class="btn-login kakao">
+            <img src="https://developers.kakao.com/assets/img/lib/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="Kakao">
+            카카오톡으로 시작하기
+          </button>
+          <button id="googleLogin" class="btn-login google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            구글 계정으로 시작하기
+          </button>
+          <button id="guestLogin" class="btn-text">게스트로 둘러보기</button>
+        </div>
+      </div>
+      <p class="login-footer">로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.</p>
+    </section>
+
+    <header class="header" style="display: none;">
       <div class="level-badge">
         <span id="userLevelIcon">🌱</span>
         <span id="userLevelTitle">입문자</span>
@@ -95,9 +123,63 @@
           <div class="card-icon"><i data-lucide="award"></i></div>
         </div>
 
+        <!-- Proficiency Checkup Card -->
+        <div class="main-card primary-action" id="startTestBtn" style="background: #a855f7; box-shadow: 0 6px 0 #7e22ce; margin-top: -15px;">
+          <div class="card-content">
+            <span class="tag" style="background: rgba(255,255,255,0.2)">SKILL CHECK</span>
+            <h3>실력 진단 테스트</h3>
+            <p id="testStatusText">내 등급을 확인해보세요!</p>
+          </div>
+          <div class="card-icon"><i data-lucide="line-chart"></i></div>
+        </div>
+
         <div class="mini-card" style="width: 100%; margin-top: 20px;">
           <h4>최근 퀴즈 성적</h4>
           <p class="sub-text">아직 기록이 없습니다. 첫 퀴즈를 시작해보세요!</p>
+        </div>
+      </section>
+
+      <!-- Level Test Section -->
+      <section id="testSection" class="section" style="display: none;">
+        <div class="learning-header">
+          <button id="closeTest" class="icon-btn"><i data-lucide="x"></i></button>
+          <div class="learning-progress">
+            <div class="progress-bar"><div id="testProgressBar" class="progress-fill" style="width: 0%; background: #a855f7;"></div></div>
+          </div>
+          <span id="testProgressText">1/10</span>
+        </div>
+
+        <div class="quiz-container">
+          <div class="question-box" style="background: #fdf4ff; padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 25px; border: 2px solid #f5d0fe;">
+            <span class="card-tag" style="position: static; color: #a855f7;">LEVEL CHECK</span>
+            <h1 id="testQuestion" style="font-size: 1.4rem; margin-top: 15px;">Loading...</h1>
+          </div>
+
+          <div id="testOptions" class="options-grid" style="display: grid; gap: 12px;">
+            <!-- Options -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Test Result Section -->
+      <section id="resultSection" class="section" style="display: none; text-align: center;">
+        <div class="result-box" style="padding: 40px 20px;">
+          <div id="resultRankBadge" class="rank-badge-large">A1</div>
+          <h2 id="resultRankTitle" style="margin: 20px 0 10px 0; font-size: 1.8rem; font-weight: 800;">초보자 등급</h2>
+          <p id="resultRankDesc" style="color: var(--text-sub); font-weight: 600; margin-bottom: 30px;">기본적인 표현을 이해하고 사용할 수 있습니다.</p>
+          
+          <div class="stats-grid" style="margin-bottom: 40px;">
+            <div class="stat-card">
+              <span class="stat-value" id="testScore">0/10</span>
+              <span class="stat-label">정답</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="testTime">0:30</span>
+              <span class="stat-label">시간</span>
+            </div>
+          </div>
+
+          <button id="backToPractice" class="btn-primary" style="width: 100%; background: #a855f7; box-shadow: 0 4px 0 #7e22ce;">확인</button>
         </div>
       </section>
 
