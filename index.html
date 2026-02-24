@@ -112,6 +112,66 @@
         </div>
       </section>
 
+      <!-- My Ground Section -->
+      <section id="groundSection" class="section" style="display: none; padding: 0;">
+        <div class="ground-container">
+          <!-- Room Background & Decoration Layer -->
+          <div class="ground-room" id="groundRoom">
+            <!-- Furniture Layer -->
+            <div id="groundFurniture"></div>
+            
+            <!-- Character & Pet Layer -->
+            <div class="ground-living-entities">
+              <!-- Avatar -->
+              <div class="ground-avatar-wrapper">
+                <div class="avatar-container" id="groundAvatar">
+                  <div class="avatar-bg" id="groundAvatarBg"></div>
+                  <div class="avatar-aura" id="groundAvatarAura"></div>
+                  <div class="avatar-body">🐱</div>
+                  <div class="avatar-hat" id="groundAvatarHat"></div>
+                </div>
+                <div class="entity-name">나</div>
+              </div>
+
+              <!-- AI Pet -->
+              <div class="ground-pet-wrapper" id="groundPetWrapper" style="display: none;">
+                <div class="pet-bubble" id="petBubble">
+                  <p id="petSpeech">Hello! Let's study English!</p>
+                </div>
+                <div class="pet-entity" id="petEntity">🐶</div>
+                <div class="entity-name" id="petName">멍멍이</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ground Controls/Info -->
+          <div class="ground-overlay">
+            <div class="ground-stats">
+              <div class="stat-bubble">
+                <i data-lucide="heart" style="color: #ff4b2b;"></i>
+                <span id="petHappiness">100</span>
+              </div>
+              <div class="stat-bubble">
+                <i data-lucide="message-circle"></i>
+                <span>English Level: <strong id="groundLevel">A1</strong></span>
+              </div>
+            </div>
+            
+            <div class="ground-actions">
+              <button class="action-circle" id="btnPetTalk" title="대화하기">
+                <i data-lucide="message-square"></i>
+              </button>
+              <button class="action-circle" id="btnPetFeed" title="먹이주기">
+                <i data-lucide="utensils"></i>
+              </button>
+              <button class="action-circle" id="btnGroundDecor" title="꾸미기">
+                <i data-lucide="palette"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Practice Section (Entry) -->
       <section id="practiceSection" class="section" style="display: none;">
         <div class="welcome-msg">
@@ -380,6 +440,8 @@
           <button class="shop-tab active" data-category="hat">머리</button>
           <button class="shop-tab" data-category="aura">효과</button>
           <button class="shop-tab" data-category="bg">배경</button>
+          <button class="shop-tab" data-category="pet">펫</button>
+          <button class="shop-tab" data-category="furniture">가구</button>
         </div>
 
         <div id="shopGrid" class="shop-grid">
@@ -466,9 +528,9 @@
         <i data-lucide="home"></i>
         <span>홈</span>
       </button>
-      <button class="nav-item" data-target="library">
-        <i data-lucide="book-open"></i>
-        <span>탐색</span>
+      <button class="nav-item" data-target="ground">
+        <i data-lucide="layout"></i>
+        <span>그라운드</span>
       </button>
       <button class="nav-item" data-target="shop">
         <i data-lucide="shopping-bag"></i>

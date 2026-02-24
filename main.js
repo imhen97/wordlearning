@@ -41,6 +41,21 @@ const App = (() => {
     shopPreviewHat: document.getElementById('shopPreviewHat'),
     shopPreviewAura: document.getElementById('shopPreviewAura'),
     shopPreviewBg: document.getElementById('shopPreviewBg'),
+    
+    // My Ground Elements
+    groundAvatarHat: document.getElementById('groundAvatarHat'),
+    groundAvatarAura: document.getElementById('groundAvatarAura'),
+    groundAvatarBg: document.getElementById('groundAvatarBg'),
+    groundPetWrapper: document.getElementById('groundPetWrapper'),
+    petSpeech: document.getElementById('petSpeech'),
+    petEntity: document.getElementById('petEntity'),
+    petName: document.getElementById('petName'),
+    petHappiness: document.getElementById('petHappiness'),
+    groundLevel: document.getElementById('groundLevel'),
+    btnPetTalk: document.getElementById('btnPetTalk'),
+    btnPetFeed: document.getElementById('btnPetFeed'),
+    btnGroundDecor: document.getElementById('btnGroundDecor'),
+    groundFurniture: document.getElementById('groundFurniture'),
 
     // Shop Elements
     shopGrid: document.getElementById('shopGrid'),
@@ -178,7 +193,19 @@ const App = (() => {
     // BACKGROUNDS
     { id: 'bg_city', category: 'bg', name: '잠들지 않는 도시', price: 300, value: 'linear-gradient(to bottom, #1e293b, #334155)' },
     { id: 'bg_forest', category: 'bg', name: '고요한 숲', price: 200, value: 'linear-gradient(to bottom, #065f46, #064e3b)' },
-    { id: 'bg_space', category: 'bg', name: '신비로운 우주', price: 500, value: 'radial-gradient(circle, #4c1d95, #1e1b4b)' }
+    { id: 'bg_space', category: 'bg', name: '신비로운 우주', price: 500, value: 'radial-gradient(circle, #4c1d95, #1e1b4b)' },
+
+    // PETS
+    { id: 'pet_dog', category: 'pet', name: '골든 리트리버', price: 1000, value: '🐶' },
+    { id: 'pet_cat', category: 'pet', name: '페르시안 고양이', price: 800, value: '🐱' },
+    { id: 'pet_hamster', category: 'pet', name: '햄찌', price: 400, value: '🐹' },
+    { id: 'pet_fox', category: 'pet', name: '사막 여우', price: 1200, value: '🦊' },
+
+    // FURNITURE
+    { id: 'furn_bed', category: 'furniture', name: '폭신한 침대', price: 500, value: '🛏️' },
+    { id: 'furn_desk', category: 'furniture', name: '공부용 책상', price: 300, value: '🖥️' },
+    { id: 'furn_couch', category: 'furniture', name: '편안한 소파', price: 450, value: '🛋️' },
+    { id: 'furn_plant', category: 'furniture', name: '대형 화분', price: 150, value: '🪴' }
   ];
 
   const RANK_DATA = {
@@ -232,6 +259,7 @@ const App = (() => {
     setupTestEvents();
     setupBattleEvents();
     setupShopEvents();
+    setupGroundEvents();
     renderLibrary();
     
     // Check for Deep Link (Challenge)
@@ -320,8 +348,9 @@ const App = (() => {
         user.name = name;
         user.gender = onboardingData.gender;
         user.onboarded = true;
-        user.equipped = { hat: null, aura: null, bg: null };
+        user.equipped = { hat: null, aura: null, bg: null, pet: null, furniture: [] };
         user.inventory = [];
+        user.petHappiness = 100;
         Store.setUser(user);
 
         alert('프로필 설정 완료! 실력 진단 테스트를 시작합니다.');
@@ -403,6 +432,7 @@ const App = (() => {
     
     if (target === 'shop') renderShop();
     if (target === 'profile') updateAvatarDisplay('profile');
+    if (target === 'ground') renderGround();
   }
 
   // --- UI Update ---
@@ -439,6 +469,95 @@ const App = (() => {
     }
 
     updateAvatarDisplay('profile');
+  }
+
+  // --- My Ground Logic ---
+  function setupGroundEvents() {
+    if (elements.btnPetTalk) elements.btnPetTalk.addEventListener('click', talkToPet);
+    if (elements.btnPetFeed) elements.btnPetFeed.addEventListener('click', feedPet);
+    if (elements.btnGroundDecor) elements.btnGroundDecor.addEventListener('click', () => switchSection('shop'));
+  }
+
+  function renderGround() {
+    const user = Store.getUser();
+    const eq = user.equipped || {};
+    
+    // Update Avatar
+    updateAvatarDisplay('ground');
+    
+    // Update Pet
+    const petId = eq.pet;
+    const pet = SHOP_ITEMS.find(i => i.id === petId);
+    if (pet) {
+      elements.groundPetWrapper.style.display = 'flex';
+      elements.petEntity.textContent = pet.value;
+      elements.petName.textContent = pet.name;
+      elements.petHappiness.textContent = user.petHappiness || 100;
+    } else {
+      elements.groundPetWrapper.style.display = 'none';
+    }
+
+    // Update Furniture
+    elements.groundFurniture.innerHTML = '';
+    const furnitureIds = eq.furniture || [];
+    furnitureIds.forEach(fid => {
+      const f = SHOP_ITEMS.find(i => i.id === fid);
+      if (f) {
+        const div = document.createElement('div');
+        div.style.fontSize = '3rem';
+        div.style.position = 'absolute';
+        // Randomish position for variety
+        const pos = {
+          furn_bed: { bottom: '25%', left: '10%' },
+          furn_desk: { bottom: '25%', right: '10%' },
+          furn_couch: { bottom: '35%', left: '20%' },
+          furn_plant: { bottom: '25%', left: '45%' }
+        }[f.id] || { bottom: '30%', left: '50%' };
+        
+        Object.assign(div.style, pos);
+        div.textContent = f.value;
+        elements.groundFurniture.appendChild(div);
+      }
+    });
+
+    elements.groundLevel.textContent = user.currentRank || 'A1';
+    lucide.createIcons();
+  }
+
+  function talkToPet() {
+    const user = Store.getUser();
+    if (!user.equipped?.pet) return alert('먼저 상점에서 동물을 입양해 주세요!');
+    
+    const messages = [
+      "Let's study English together! 📖",
+      "You're doing great! Keep it up! 🌟",
+      "How about a quick quiz? 🎯",
+      "Practice makes perfect! 💪",
+      "I'm so happy to be with you! ❤️",
+      "English is fun, isn't it? 😊"
+    ];
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+    elements.petSpeech.textContent = randomMsg;
+    
+    // Pet animation
+    elements.petEntity.style.transform = 'scale(1.2) translateY(-10px)';
+    setTimeout(() => { elements.petEntity.style.transform = ''; }, 300);
+  }
+
+  function feedPet() {
+    const user = Store.getUser();
+    if (!user.equipped?.pet) return alert('먼저 상점에서 동물을 입양해 주세요!');
+    if (user.coins < 10) return alert('사료를 살 코인이 부족합니다! (10 코인 필요)');
+    
+    user.coins -= 10;
+    user.petHappiness = Math.min(100, (user.petHappiness || 0) + 20);
+    Store.setUser(user);
+    updateUI();
+    renderGround();
+    
+    elements.petSpeech.textContent = "Yummy! Thank you! 😋";
+    elements.petEntity.style.animation = 'none';
+    setTimeout(() => { elements.petEntity.style.animation = 'bounce 2s infinite'; }, 10);
   }
 
   // --- Shared Setup ---
@@ -754,7 +873,7 @@ const App = (() => {
   function setupShopEvents() {
     elements.shopTabs.forEach(tab => {
       tab.addEventListener('click', () => {
-        elements.shopTabs.forEach(t => tab.classList.remove('active'));
+        elements.shopTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentShopCategory = tab.getAttribute('data-category');
         renderShop();
@@ -775,7 +894,7 @@ const App = (() => {
       card.className = 'shop-item-card';
       
       card.innerHTML = `
-        <div class="item-icon-circle">${item.category === 'bg' ? '🖼️' : item.value}</div>
+        <div class="item-icon-circle">${['bg', 'pet', 'furniture'].includes(item.category) ? item.value : item.value}</div>
         <h4 style="margin: 0; font-size: 0.9rem;">${item.name}</h4>
         <button class="btn-primary buy-btn" style="height: 36px; font-size: 0.8rem; box-shadow: none; ${isOwned ? 'background:#94a3b8;' : ''}">
           ${isOwned ? '보유중' : `${item.price} 💰`}
@@ -832,10 +951,16 @@ const App = (() => {
     inventory.forEach(itemId => {
       const item = SHOP_ITEMS.find(i => i.id === itemId);
       if (item) {
-        const isEquipped = user.equipped && user.equipped[item.category] === item.id;
+        let isEquipped = false;
+        if (item.category === 'furniture') {
+          isEquipped = user.equipped?.furniture?.includes(item.id);
+        } else {
+          isEquipped = user.equipped && user.equipped[item.category] === item.id;
+        }
+        
         const div = document.createElement('div');
         div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
-        div.innerHTML = `<span>${item.category === 'bg' ? '🖼️' : item.value}</span> ${item.name}`;
+        div.innerHTML = `<span>${item.value}</span> ${item.name}`;
         div.addEventListener('click', () => toggleEquip(item));
         elements.inventoryList.appendChild(div);
       }
@@ -844,28 +969,43 @@ const App = (() => {
 
   function toggleEquip(item) {
     const user = Store.getUser();
-    if (!user.equipped) user.equipped = { hat: null, aura: null, bg: null };
+    if (!user.equipped) user.equipped = { hat: null, aura: null, bg: null, pet: null, furniture: [] };
     
-    if (user.equipped[item.category] === item.id) {
-      user.equipped[item.category] = null; // Unequip
+    if (item.category === 'furniture') {
+      if (!user.equipped.furniture) user.equipped.furniture = [];
+      if (user.equipped.furniture.includes(item.id)) {
+        user.equipped.furniture = user.equipped.furniture.filter(id => id !== item.id);
+      } else {
+        user.equipped.furniture.push(item.id);
+      }
     } else {
-      user.equipped[item.category] = item.id; // Equip
+      if (user.equipped[item.category] === item.id) {
+        user.equipped[item.category] = null; // Unequip
+      } else {
+        user.equipped[item.category] = item.id; // Equip
+      }
     }
     
     Store.setUser(user);
     renderShop();
     updateAvatarDisplay('profile');
+    if (elements.groundSection.style.display === 'block') renderGround();
   }
 
   function updateAvatarDisplay(type) {
     const user = Store.getUser();
     const eq = user.equipped || {};
     
-    const targets = type === 'profile' ? 
-      { hat: elements.profileAvatarHat, aura: elements.profileAvatarAura, bg: elements.profileAvatarBg } :
-      { hat: elements.shopPreviewHat, aura: elements.shopPreviewAura, bg: elements.shopPreviewBg };
+    let targets;
+    if (type === 'profile') {
+      targets = { hat: elements.profileAvatarHat, aura: elements.profileAvatarAura, bg: elements.profileAvatarBg };
+    } else if (type === 'shop') {
+      targets = { hat: elements.shopPreviewHat, aura: elements.shopPreviewAura, bg: elements.shopPreviewBg };
+    } else if (type === 'ground') {
+      targets = { hat: elements.groundAvatarHat, aura: elements.groundAvatarAura, bg: elements.groundAvatarBg };
+    }
 
-    if (!targets.hat) return;
+    if (!targets || !targets.hat) return;
 
     // Apply equipped items to display
     ['hat', 'aura', 'bg'].forEach(cat => {
