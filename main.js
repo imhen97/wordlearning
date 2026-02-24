@@ -117,6 +117,8 @@ const App = (() => {
     testTime: document.getElementById('testTime'),
     testStatusText: document.getElementById('testStatusText'),
     backToPractice: document.getElementById('backToPractice'),
+    analysisGraph: document.getElementById('analysisGraph'),
+    analysisSummary: document.getElementById('analysisSummary'),
 
     // Battle Elements
     startBattleBtn: document.getElementById('startBattleBtn'),
@@ -219,16 +221,16 @@ const App = (() => {
   };
 
   const TEST_QUESTIONS = [
-    { q: 'He ____ to school every day.', options: ['go', 'goes', 'going', 'went'], correct: 'goes' },
-    { q: 'I haven\'t seen him ____ last year.', options: ['for', 'since', 'during', 'at'], correct: 'since' },
-    { q: 'If it ____ tomorrow, we will stay home.', options: ['rain', 'rains', 'will rain', 'rained'], correct: 'rains' },
-    { q: 'Choose the synonym of "Tiny":', options: ['Huge', 'Small', 'Fast', 'Heavy'], correct: 'Small' },
-    { q: 'She is interested ____ learning art.', options: ['on', 'at', 'in', 'with'], correct: 'in' },
-    { q: 'I wish I ____ a billionaire.', options: ['am', 'was', 'were', 'be'], correct: 'were' },
-    { q: 'The movie was ____ than I expected.', options: ['good', 'better', 'best', 'more good'], correct: 'better' },
-    { q: 'Would you mind ____ the window?', options: ['open', 'to open', 'opening', 'opened'], correct: 'opening' },
-    { q: 'He ____ his keys. He is looking for them now.', options: ['lost', 'has lost', 'had lost', 'loses'], correct: 'has lost' },
-    { q: 'The term "Piece of cake" means:', options: ['Very difficult', 'Delicious', 'Very easy', 'A small slice'], correct: 'Very easy' }
+    { q: 'He ____ to school every day.', options: ['go', 'goes', 'going', 'went'], correct: 'goes', category: 'Grammar' },
+    { q: 'I haven\'t seen him ____ last year.', options: ['for', 'since', 'during', 'at'], correct: 'since', category: 'Grammar' },
+    { q: 'If it ____ tomorrow, we will stay home.', options: ['rain', 'rains', 'will rain', 'rained'], correct: 'rains', category: 'Tense' },
+    { q: 'Choose the synonym of "Tiny":', options: ['Huge', 'Small', 'Fast', 'Heavy'], correct: 'Small', category: 'Vocabulary' },
+    { q: 'She is interested ____ learning art.', options: ['on', 'at', 'in', 'with'], correct: 'in', category: 'Vocabulary' },
+    { q: 'I wish I ____ a billionaire.', options: ['am', 'was', 'were', 'be'], correct: 'were', category: 'Grammar' },
+    { q: 'The movie was ____ than I expected.', options: ['good', 'better', 'best', 'more good'], correct: 'better', category: 'Grammar' },
+    { q: 'Would you mind ____ the window?', options: ['open', 'to open', 'opening', 'opened'], correct: 'opening', category: 'Grammar' },
+    { q: 'He ____ his keys. He is looking for them now.', options: ['lost', 'has lost', 'had lost', 'loses'], correct: 'has lost', category: 'Tense' },
+    { q: 'The term "Piece of cake" means:', options: ['Very difficult', 'Delicious', 'Very easy', 'A small slice'], correct: 'Very easy', category: 'Expression' }
   ];
 
   // Battle Opponents (Fallback)
@@ -568,7 +570,15 @@ const App = (() => {
       const cat = LESSON_DATA[key];
       const card = document.createElement('div');
       card.className = 'category-card';
-      card.innerHTML = `<div class="cat-icon">${cat.icon}</div><div class="cat-info"><h4>${cat.title}</h4><p>${cat.count} Expressions</p></div><div class="cat-badge">NEW</div>`;
+      card.setAttribute('data-key', key);
+      card.innerHTML = `
+        <div class="cat-badge">NEW</div>
+        <div class="cat-icon-box">${cat.icon}</div>
+        <div class="cat-info">
+          <h4>${cat.title}</h4>
+          <p>${cat.count}개 표현</p>
+        </div>
+      `;
       card.addEventListener('click', () => startLesson(key));
       elements.categoryGrid.appendChild(card);
     });
@@ -700,6 +710,7 @@ const App = (() => {
 
   function startTest() {
     testState.currentIndex = 0; testState.score = 0; testState.startTime = new Date();
+    testState.categoryScores = {};
     renderTestQuestion(); switchSection('test');
   }
 
@@ -708,7 +719,15 @@ const App = (() => {
     elements.testQuestion.textContent = q.q; elements.testOptions.innerHTML = '';
     q.options.forEach(opt => {
       const btn = document.createElement('button'); btn.className = 'option-btn'; btn.textContent = opt;
-      btn.addEventListener('click', () => { if (opt === q.correct) testState.score++; nextTestStep(); });
+      btn.addEventListener('click', () => { 
+        if (!testState.categoryScores[q.category]) testState.categoryScores[q.category] = { correct: 0, total: 0 };
+        testState.categoryScores[q.category].total++;
+        if (opt === q.correct) {
+          testState.score++;
+          testState.categoryScores[q.category].correct++;
+        }
+        nextTestStep(); 
+      });
       elements.testOptions.appendChild(btn);
     });
     const progress = (testState.currentIndex / TEST_QUESTIONS.length) * 100;
@@ -732,8 +751,65 @@ const App = (() => {
     elements.resultRankDesc.textContent = data.desc; elements.testScore.textContent = `${score}/${TEST_QUESTIONS.length}`;
     const timeTaken = Math.floor((new Date() - testState.startTime) / 1000);
     elements.testTime.textContent = `${Math.floor(timeTaken/60)}:${(timeTaken%60).toString().padStart(2,'0')}`;
+    
+    renderProficiencyAnalysis();
+    
     const user = Store.getUser(); user.currentRank = rank; user.lastTestDate = new Date().toISOString();
     Store.setUser(user); updateUI(); switchSection('result');
+  }
+
+  function renderProficiencyAnalysis() {
+    const categories = ['Grammar', 'Tense', 'Vocabulary', 'Expression'];
+    const mockAvg = { Grammar: 65, Tense: 50, Vocabulary: 70, Expression: 45 };
+    
+    elements.analysisGraph.innerHTML = '';
+    let summaryText = "";
+    let strengths = [];
+    let weaknesses = [];
+
+    categories.forEach(cat => {
+      const stats = testState.categoryScores[cat] || { correct: 0, total: 0 };
+      const userPct = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+      const avgPct = mockAvg[cat];
+      
+      if (userPct > avgPct) strengths.push(cat);
+      else if (userPct < avgPct) weaknesses.push(cat);
+
+      const row = document.createElement('div');
+      row.className = 'graph-row';
+      row.innerHTML = `
+        <div class="graph-label-row">
+          <span class="graph-category-name">${cat}</span>
+          <span class="graph-score-text">내 성취도: ${Math.round(userPct)}%</span>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar-avg" style="width: ${avgPct}%"></div>
+          <div class="bar-user" style="width: 0%"></div>
+          <div class="avg-marker" style="left: ${avgPct}%"></div>
+        </div>
+      `;
+      elements.analysisGraph.appendChild(row);
+      
+      // Trigger animation
+      setTimeout(() => {
+        const barUser = row.querySelector('.bar-user');
+        if (barUser) barUser.style.width = `${userPct}%`;
+      }, 100);
+    });
+
+    // Summary Generation
+    if (strengths.length > 0) {
+      summaryText += `✨ **${strengths.join(', ')}** 영역에서 평균보다 높은 이해도를 보이고 있습니다! `;
+    }
+    if (weaknesses.length > 0) {
+      summaryText += `⚠️ **${weaknesses.join(', ')}** 영역은 집중 학습이 필요해 보입니다. `;
+    }
+    if (strengths.length === 0 && weaknesses.length === 0) {
+      summaryText = "전체적으로 평균적인 실력을 보유하고 계시네요! 꾸준히 학습하면 더 도약할 수 있습니다.";
+    }
+
+    elements.analysisSummary.innerHTML = summaryText;
+    lucide.createIcons();
   }
 
   // --- Battle Logic ---

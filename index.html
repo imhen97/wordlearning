@@ -127,7 +127,14 @@
                 <div class="avatar-container" id="groundAvatar">
                   <div class="avatar-bg" id="groundAvatarBg"></div>
                   <div class="avatar-aura" id="groundAvatarAura"></div>
-                  <div class="avatar-body">🐱</div>
+                  <div class="avatar-body chibi">
+                    <div class="chibi-head">
+                      <div class="chibi-face"><div class="chibi-eyes"></div><div class="chibi-mouth"></div></div>
+                      <div class="chibi-hair"></div>
+                    </div>
+                    <div class="chibi-torso"><div class="chibi-arm left"></div><div class="chibi-arm right"></div></div>
+                    <div class="chibi-legs"><div class="chibi-leg left"></div><div class="chibi-leg right"></div></div>
+                  </div>
                   <div class="avatar-hat" id="groundAvatarHat"></div>
                 </div>
                 <div class="entity-name">나</div>
@@ -189,9 +196,9 @@
         </div>
 
         <!-- Proficiency Checkup Card -->
-        <div class="main-card primary-action" id="startTestBtn" style="background: #a855f7; box-shadow: 0 6px 0 #7e22ce; margin-top: -15px;">
+        <div class="main-card primary-action" id="startTestBtn" style="background: #a855f7; margin-top: -10px;">
           <div class="card-content">
-            <span class="tag" style="background: rgba(255,255,255,0.2)">SKILL CHECK</span>
+            <span class="tag">SKILL CHECK</span>
             <h3>실력 진단 테스트</h3>
             <p id="testStatusText">내 등급을 확인해보세요!</p>
           </div>
@@ -199,9 +206,9 @@
         </div>
 
         <!-- Battle Card -->
-        <div class="main-card primary-action" id="startBattleBtn" style="background: #ef4444; box-shadow: 0 6px 0 #b91c1c; margin-top: 15px;">
+        <div class="main-card primary-action" id="startBattleBtn" style="background: #ef4444; margin-top: 10px;">
           <div class="card-content">
-            <span class="tag" style="background: rgba(255,255,255,0.2)">PVP BATTLE</span>
+            <span class="tag">PVP BATTLE</span>
             <h3>1:1 코인 뺏기 배틀</h3>
             <p>상대를 이기고 50 코인을 뺏어오세요!</p>
           </div>
@@ -297,12 +304,30 @@
 
       <!-- Test Result Section -->
       <section id="resultSection" class="section" style="display: none; text-align: center;">
-        <div class="result-box" style="padding: 40px 20px;">
+        <div class="result-box" style="padding: 30px 20px;">
           <div id="resultRankBadge" class="rank-badge-large">A1</div>
-          <h2 id="resultRankTitle" style="margin: 20px 0 10px 0; font-size: 1.8rem; font-weight: 800;">초보자 등급</h2>
-          <p id="resultRankDesc" style="color: var(--text-sub); font-weight: 600; margin-bottom: 30px;">기본적인 표현을 이해하고 사용할 수 있습니다.</p>
+          <h2 id="resultRankTitle" style="margin: 15px 0 5px 0; font-size: 1.8rem; font-weight: 800;">초보자 등급</h2>
+          <p id="resultRankDesc" style="color: var(--text-sub); font-weight: 600; margin-bottom: 25px;">기본적인 표현을 이해하고 사용할 수 있습니다.</p>
           
-          <div class="stats-grid" style="margin-bottom: 40px;">
+          <!-- Detailed Analysis Card -->
+          <div class="analysis-card" style="background: #f8fafc; border-radius: 20px; padding: 20px; margin-bottom: 25px; text-align: left; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="bar-chart-3" style="color: var(--primary); width: 20px;"></i>
+              영역별 실력 분석 (평균 대비)
+            </h4>
+            
+            <div id="analysisGraph" class="analysis-graph-container">
+              <!-- Bar graphs will be injected here -->
+            </div>
+
+            <div class="analysis-text-box" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #cbd5e1;">
+              <p id="analysisSummary" style="font-size: 0.9rem; line-height: 1.6; color: #475569; font-weight: 600;">
+                분석 중...
+              </p>
+            </div>
+          </div>
+
+          <div class="stats-grid" style="margin-bottom: 30px;">
             <div class="stat-card">
               <span class="stat-value" id="testScore">0/10</span>
               <span class="stat-label">정답</span>
@@ -350,7 +375,14 @@
           <div class="avatar-container" id="profileAvatarContainer">
             <div class="avatar-bg" id="profileAvatarBg"></div>
             <div class="avatar-aura" id="profileAvatarAura"></div>
-            <div class="avatar-body">🐱</div>
+            <div class="avatar-body chibi">
+              <div class="chibi-head">
+                <div class="chibi-face"><div class="chibi-eyes"></div><div class="chibi-mouth"></div></div>
+                <div class="chibi-hair"></div>
+              </div>
+              <div class="chibi-torso"><div class="chibi-arm left"></div><div class="chibi-arm right"></div></div>
+              <div class="chibi-legs"><div class="chibi-leg left"></div><div class="chibi-leg right"></div></div>
+            </div>
             <div class="avatar-hat" id="profileAvatarHat"></div>
           </div>
           <h2 id="profileName">학습자님</h2>
@@ -428,7 +460,14 @@
             <div class="avatar-container" id="shopAvatarPreview">
               <div class="avatar-bg" id="shopPreviewBg"></div>
               <div class="avatar-aura" id="shopPreviewAura"></div>
-              <div class="avatar-body">🐱</div>
+              <div class="avatar-body chibi">
+                <div class="chibi-head">
+                  <div class="chibi-face"><div class="chibi-eyes"></div><div class="chibi-mouth"></div></div>
+                  <div class="chibi-hair"></div>
+                </div>
+                <div class="chibi-torso"><div class="chibi-arm left"></div><div class="chibi-arm right"></div></div>
+                <div class="chibi-legs"><div class="chibi-leg left"></div><div class="chibi-leg right"></div></div>
+              </div>
               <div class="avatar-hat" id="shopPreviewHat"></div>
             </div>
             <p class="sub-text" style="margin-top: 10px; font-weight: 800;">PREVIEW</p>
@@ -483,7 +522,7 @@
               <p id="feedbackMeaning" style="margin: 4px 0 0 0; font-size: 0.9rem; color: #166534; font-weight: 600;">Good job!</p>
             </div>
           </div>
-          <button id="nextQuizBtn" style="width: 100%; height: 56px; border: none; border-radius: 16px; background: #22c55e; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #166534;">계속하기</button>
+          <button id="nextQuizBtn" class="btn-next-action">계속하기</button>
         </div>
       </section>
 
