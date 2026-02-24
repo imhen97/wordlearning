@@ -136,7 +136,8 @@ const App = (() => {
     battleResultTitle: document.getElementById('battleResultTitle'),
     battleReward: document.getElementById('battleReward'),
     closeBattle: document.getElementById('closeBattle'),
-    shareBattleBtn: document.getElementById('shareBattleBtn')
+    shareBattleBtn: document.getElementById('shareBattleBtn'),
+    playAudio: document.getElementById('playAudio')
   };
 
   const LESSON_DATA = {
@@ -613,7 +614,7 @@ const App = (() => {
       Gamification.awardCoins('CARD_SEEN');
       lessonState.currentIndex++;
       if (lessonState.currentIndex < lessonState.currentList.length) {
-        elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = 'none';
+        elements.activeCard.style.transition = 'none'; elements.activeCard.style.transform = '';
         elements.activeCard.style.opacity = '1'; renderCard();
         setTimeout(() => { elements.activeCard.style.transition = ''; }, 10);
       } else { finishLesson(); }
@@ -624,6 +625,15 @@ const App = (() => {
   function finishLesson() {
     alert('오늘의 학습 완료! 코인 보너스를 획득했습니다.');
     Gamification.awardCoins('DAILY_GOAL'); switchSection('home');
+  }
+
+  function speakText(text) {
+    if (!window.speechSynthesis) return alert('이 브라우저는 음성 합성을 지원하지 않습니다.');
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
   }
 
   function setupLessonEvents() {
@@ -638,6 +648,13 @@ const App = (() => {
     if (elements.btnNope) elements.btnNope.addEventListener('click', () => handleSwipe('left'));
     if (elements.closeLearning) elements.closeLearning.addEventListener('click', () => switchSection('home'));
     if (elements.startTodayLesson) elements.startTodayLesson.addEventListener('click', () => startLesson('daily'));
+    if (elements.playAudio) {
+      elements.playAudio.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const data = lessonState.currentList[lessonState.currentIndex];
+        if (data) speakText(data.word);
+      });
+    }
     elements.homeCategories.forEach(btn => btn.addEventListener('click', () => startLesson(btn.getAttribute('data-category'))));
   }
 
